@@ -1,0 +1,76 @@
+<head class="insert" th:insert="@{Admin/Components/empty_header}" />
+
+<!--Send Notification To User Start-->
+<div class="content-wrapper">
+    <div class="row">
+        <div class="col-md-12 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title" style="text-align: center;" th:text="#{label.profile}"/>
+                    <p class="card-description" style="text-align: center;" th:text="#{label.please_fill_under_data}"/>
+                    <form class="forms-sample" th:action="@{/Admin/Panel/UserManager/User/Edit/Done}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="user_id" th:value="${edit_user_data.getId()}"/>
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.username}"/>
+                            <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.username}" name="username" th:value="${edit_user_data.getUsername()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.name}"/>
+                            <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.name}" name="name" th:value="${edit_user_data.getName()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.family}"/>
+                            <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.family}" name="family" th:value="${edit_user_data.getFamily()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.newpassword}"/>
+                            <input type="password" class="form-control" id="exampleInputPassword1" th:placeholder="#{label.newpassword}" name="password">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.email}"/>
+                            <input type="email" class="form-control" id="exampleInputPassword1" th:placeholder="#{label.email}" name="email" th:value="${edit_user_data.getEmail()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.newprofileimage}"/>
+                            <input type="file" class="form-control" id="exampleInputPassword1" name="profile_image">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.phone}"/>
+                            <input type="text" class="form-control" id="exampleInputPassword1" th:placeholder="#{label.phone}" name="phone" th:value="${edit_user_data.getPhone()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.address}"/>
+                            <input type="text" class="form-control" id="exampleInputPassword1" th:address="#{label.address}" name="address" th:value="${edit_user_data.getAddress()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.city}"/>
+                            <select class="form-control" id="exampleInputUsername1" name="city">
+                                <option th:each="city : ${Cites}" th:selected="${city.getId()==edit_user_data.getCity_id().getId()?true:false}" th:text="${city.getName()}" th:value="${city.getId()}"/>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.bio}"/>
+                            <textarea style="height: 150px;" class="form-control" id="exampleInputPassword1" th:placeholder="#{label.bio}" name="bio" th:text="${edit_user_data.getBio()}"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.usertype}"/>
+                            <select class="form-control" id="exampleInputUsername1" name="user_type">
+                                <option th:each="user_type : ${user_types}" th:selected="${user_type.getTitle()==edit_user_data.getUser_type()?true:false}" th:text="${user_type.getTitle()}" th:value="${user_type.getTitle()}"/>
+                            </select>
+                        </div>
+
+                        <br>
+                        <div th:unless="${google_auth}">
+                            <a th:href="@{/Admin/Panel/UserManager/User/DisableGoogleAuth/}+${edit_user_data.getId()}" style="width: 100%;" class="btn btn-gradient-primary mr-2" th:text="#{label.diactive2f}"/>
+                        </div>
+
+                        <br>
+                        <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.done}"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<!--Send Notification To User End-->
+
+<hdr class="insert" th:insert="@{Admin/Components/empty_footer}" />

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <meta http-equiv="cache-control" content="private" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <meta http-equiv="cleartype" content="on" />
+    <link rel="stylesheet" th:href="@{/Assets/Web/maps.css}">
+    <link rel="icon" type="image/png" th:href="@{/Assets/Admin/images/ico.png}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin="" />
+</head>
+<body>
+<div class="parent" id="boom">
+    <input type="hidden" th:value="${hub_serial}" id="serialbox">
+    <input type="hidden" th:value="${hub_title}" id="titlebox">
+    <input type="hidden" th:value="${lat}" id="latbox">
+    <input type="hidden" th:value="${lng}" id="lngbox">
+
+    <div id="map"></div>
+
+    <span id="channelStatus" status="offline" clientidmode="Static"></span>
+    <span id="channelInfo" clientidmode="Static">
+            <a href="https://www.iziot.ir/" target="_blank">iziot.ir</a><span class="caption">iziot - Live Streaming & Data Processing</span><span class="archived" id="trailToggle" onclick="toggleTrail()">🕒 24h</span>
+        </span>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js" integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg==" crossorigin=""></script>
+
+<script type="text/javascript">
+
+    var serialbox = window.document.getElementById("serialbox");
+    var titlebox = window.document.getElementById("titlebox");
+    var latbox = window.document.getElementById("latbox");
+    var lngbox = window.document.getElementById("lngbox");
+
+    var startLat = parseFloat(latbox.value) || 0;
+    var startLng = parseFloat(lngbox.value) || 0;
+
+    //Get icon rules based on keywords found in the hub Title. Add more entries here as new device types show up.
+    var iconRules = [
+        { keyword: "car",    emoji: "🚗" },
+        { keyword: "animal", emoji: "🐄" }
+    ];
+    var defaultEmoji = "📍";
+
+    function buildIcon(title) {
+        var lowerTitle = (title || "").toLowerCase();
+        var emoji = defaultEmoji;
+
+        for (var i = 0; i < iconRules.length; i++) {
+            if (lowerTitle.indexOf(iconRules[i].keyword) !== -1) {
+                emoji = iconRules[i].emoji;
+                break;
+            }
+        }
+
+        return L.divIcon({
+            className: "gps-marker",
+            html: '<div class="gps-marker-badge">' + emoji + '</div><div class="gps-marker-tail"></div>',
+            iconSize: [44, 54],
+            iconAnchor: [22, 54],
+            popupAnchor: [0, -50]
+        });
+    }
+
+    //Map init
+    var map = L.map('map', {
+        center: [startLat, startLng],
+        zoom: 16
+    });
+
+    L.tileLayer('https://m.bzhub.social/tile/proxy.php?layer=standard&z={z}&x={x}&y={y}', {
+        maxZoom: 19,
+        attribution: 'iziot.ir'
+    }).addTo(map);
+
+    var marker = L.marker([startLat, startLng], { icon: buildIcon(titlebox.value) }).addTo(map);
+
+    var trailLine = null;
+    var trailVisible = false;
+    var trailLoaded = false;
+
+    //Get live location refresh
+    function refreshLocation() {
+        var request = new XMLHttpRequest();
+        request.open("GET", "/api/hub-location/" + serialbox.value, true);
+        request.send(null);
+        request.onreadystatechange = function () {
+            if (request.readyState == 4 && request.status == 200) {
+                try {
+                    var json_response = JSON.parse(request.responseText);
+                    if (json_response.status == "success") {
+                        var newLat = parseFloat(json_response.lat);
+                        var newLng = parseFloat(json_response.lng);
+
+                        marker.setLatLng([newLat, newLng]);
+                        map.panTo([newLat, newLng]);
+
+                        latbox.value = json_response.lat;
+                        lngbox.value = json_response.lng;
+
+                        document.getElementById("channelStatus").innerHTML = "Live";
+                        document.getElementById("channelStatus").setAttribute("status", "LIVE");
+                    }
+                } catch (e) {
+                    console.log("Error parsing location response: " + e);
+                }
+            } else if (request.readyState == 4) {
+                document.getElementById("channelStatus").innerHTML = "Offline";
+                document.getElementById("channelStatus").setAttribute("status", "offline");
+            }
+        }
+    }
+
+    //Get last 24 hours movement trail
+    function loadTrail() {
+        var request = new XMLHttpRequest();
+        request.open("GET", "/api/hub-location-history/" + serialbox.value, true);
+        request.send(null);
+        request.onreadystatechange = function () {
+            if (request.readyState == 4 && request.status == 200) {
+                try {
+                    var json_response = JSON.parse(request.responseText);
+                    if (json_response.status == "success") {
+                        var points = json_response.points.map(function (p) {
+                            return [parseFloat(p.lat), parseFloat(p.lng)];
+                        });
+
+                        if (trailLine) {
+                            map.removeLayer(trailLine);
+                        }
+
+                        trailLine = L.polyline(points, { color: "#2f80ed", weight: 4, opacity: 0.7 }).addTo(map);
+                        trailLoaded = true;
+
+                        if (points.length > 0) {
+                            map.fitBounds(trailLine.getBounds());
+                        }
+                    }
+                } catch (e) {
+                    console.log("Error parsing trail response: " + e);
+                }
+            }
+        }
+    }
+
+    function toggleTrail() {
+        trailVisible = !trailVisible;
+        var toggleBtn = document.getElementById("trailToggle");
+
+        if (trailVisible) {
+            toggleBtn.classList.add("active");
+            if (!trailLoaded) {
+                loadTrail();
+            } else if (trailLine) {
+                trailLine.addTo(map);
+            }
+        } else {
+            toggleBtn.classList.remove("active");
+            if (trailLine) {
+                map.removeLayer(trailLine);
+            }
+        }
+    }
+
+    refreshLocation();
+    setInterval(refreshLocation, 15000);
+
+</script>
+
+</body>
+</html>

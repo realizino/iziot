@@ -1,0 +1,331 @@
+<head class="insert" th:insert="@{Admin/Components/empty_header}" />
+
+<!-- partial -->
+<div class="content-wrapper">
+
+  <div class="page-header">
+    <h3 class="page-title">
+                <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                  <i class="mdi mdi-camera-iris"></i>
+                </span></span><span th:text="#{label.edithub}"/>
+    </h3>
+  </div>
+
+  <div class="row">
+
+    <!--Right Side Of Content Start-->
+    <div class="col-md-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <form class="forms-sample" action="/Admin/Panel/Hub/Update" method="post">
+
+            <input type="hidden" name="hub_id" th:value="${hub.getId()}" id="hub_id">
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.serialnumber}"/>
+              <input type="text" th:value="${hub.getSerial_number()}" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.serialnumber}" name="serial_number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.title}"/>
+              <input type="text" th:value="${hub.getTitle()}" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.title}" name="title" required>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.iot_type}"/>
+              <select class="form-control" id="iot_type_select" name="iot_type">
+                <option th:selected="${hub.getIot_type()=='STAND'?true:false}" value="STAND">STAND</option>
+                <option th:selected="${hub.getIot_type()=='MOBILE'?true:false}" value="MOBILE">Mobile</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.iot_model}"></label>
+
+              <select class="form-control" id="iot_model_select" name="iot_model">
+                <option value="ESP32CAM"
+                        th:selected="${hub.getIot_model() == 'ESP32CAM'}">
+                  ESP32-Cam
+                </option>
+
+                <option
+                        th:value="'ESP32CAMNEWPROTOCOL-' + #{label.domain}"
+                        th:text="'ESP32-Cam-New Protocol - ' + #{label.domain}"
+                        th:selected="${hub.getIot_model().contains('ESP32CAMNEWPROTOCOL')}">
+                </option>
+
+                <option value="ESP32"
+                        th:selected="${hub.getIot_model() == 'ESP32'}">
+                  ESP32
+                </option>
+
+                <option
+                        th:value="'ESP32NEWPROTOCOL-' + #{label.domain}"
+                        th:text="'ESP32-New Protocol - ' + #{label.domain}"
+                        th:selected="${hub.getIot_model().contains('ESP32NEWPROTOCOL')}">
+                </option>
+              </select>
+            </div>
+
+
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.timezone}"/>
+              <select class="form-control" id="exampleInputUsername1" name="timezone">
+                <option th:each="city : ${cites}" th:selected="${city.getTimezone().equals(hub.getTimezone())?true:false}" th:text="${city.getName()} + ${city.getTimezone()}" th:value="${city.getTimezone()}"/>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.status}"/>
+              <select class="form-control" id="exampleInputUsername1" name="status">
+                <option th:selected="${hub.getStatus()=='Enable'?true:false}" value="Enable">Enable</option>
+                <option th:selected="${hub.getStatus()=='Diasable'?true:false}" value="Diasable">Diasable</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="resolution_group">
+              <label for="exampleInputUsername1" th:text="#{label.resolution}"/>
+              <select class="form-control" id="exampleInputUsername1" name="resolution">
+                <option th:selected="${hub.getDefault_resolution()=='96×96'?true:false}" value="96×96">96 × 96</option>
+                <option th:selected="${hub.getDefault_resolution()=='176×144'?true:false}" value="176×144">176 × 144</option>
+                <option th:selected="${hub.getDefault_resolution()=='240×176'?true:false}" value="240×176">240 × 176</option>
+                <option th:selected="${hub.getDefault_resolution()=='320×240'?true:false}" value="320×240">320 × 240</option>
+                <option th:selected="${hub.getDefault_resolution()=='400×296'?true:false}" value="400×296">400 × 296</option>
+                <option th:selected="${hub.getDefault_resolution()=='640×480'?true:false}" value="640×480">640 × 480</option>
+                <option th:selected="${hub.getDefault_resolution()=='800×600'?true:false}" value="800×600">800 × 600</option>
+                <option th:selected="${hub.getDefault_resolution()=='1024×768'?true:false}" value="1024×768">1024 × 768</option>
+                <option th:selected="${hub.getDefault_resolution()=='1280×1024'?true:false}" value="1280×1024">1280 × 1024</option>
+                <option th:selected="${hub.getDefault_resolution()=='1600×1200'?true:false}" value="1600×1200">1600 × 1200</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.adminnumber}"/>
+              <input th:value="${hub.getAdmin_mobile()}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.adminnumber}" name="admin_number" required>
+            </div>
+
+            <!--Attribute start-->
+            <div style="display: flow" class="form-group">
+              <div class="form-check" style="margin-left: 20px;">
+                <input class="form-check-input" type="checkbox" value="Thermometer" id="ThermometerCheck" onclick="updateHiddenInput(this)">
+                <label style="margin-left: 0;" class="form-check-label" for="ThermometerCheck">
+                  Thermometer
+                </label>
+              </div>
+              <div class="form-check" style="margin-left: 20px;">
+                <input class="form-check-input" type="checkbox" value="Air quality" id="Air_qualityCheck" onclick="updateHiddenInput(this)">
+                <label style="margin-left: 0;" class="form-check-label" for="Air_qualityCheck">
+                  Air quality
+                </label>
+              </div>
+              <div class="form-check" style="margin-left: 20px;">
+                <input class="form-check-input" type="checkbox" value="Rotate" id="Rotate" onclick="updateHiddenInput(this)">
+                <label style="margin-left: 0;" class="form-check-label" for="Rotate">
+                  Rotate
+                </label>
+              </div>
+              <div class="form-check" style="margin-left: 20px;">
+                <input class="form-check-input" type="checkbox" value="RealTime" id="RealTime" onclick="updateHiddenInput(this)">
+                <label style="margin-left: 0;" class="form-check-label" for="RealTime">
+                  Real Time
+                </label>
+              </div>
+              <div class="form-check" style="margin-left: 20px;">
+                <input class="form-check-input" type="checkbox" value="Neo M6" id="NeoM6Check" onclick="updateHiddenInput(this)">
+                <label style="margin-left: 0;" class="form-check-label" for="NeoM6Check">
+                  Neo M6 (GPS)
+                </label>
+              </div>
+              <div class="form-check" style="margin-left: 20px;">
+                <input class="form-check-input" type="checkbox" value="SIM800C" id="Sim800cCheck" onclick="updateHiddenInput(this)">
+                <label style="margin-left: 0;" class="form-check-label" for="Sim800cCheck">
+                  SIM800C GSM GPRS MOD53
+                </label>
+              </div>
+              <input th:value="${hub.getAttribute()}" type="hidden" id="attribute_inpt" name="attribute_inpt">
+              <script>
+
+                //load start
+                var attribute_inpt = document.getElementById('attribute_inpt');
+                var attrib_val=attribute_inpt.value;
+                var attribs=attrib_val.split("");
+                if(attribs.length>0)
+                {
+                  if(attrib_val.includes("Thermometer"))
+                  {
+                    var ThermometerCheck=window.document.getElementById("ThermometerCheck");
+                    ThermometerCheck.checked=true;
+                  }
+
+                  if(attrib_val.includes("Air quality"))
+                  {
+                    var Air_qualityCheck=window.document.getElementById("Air_qualityCheck");
+                    Air_qualityCheck.checked=true;
+                  }
+
+                  if(attrib_val.includes("Rotate"))
+                  {
+                    var Rotate=window.document.getElementById("Rotate");
+                    Rotate.checked=true;
+                  }
+
+                  if(attrib_val.includes("RealTime"))
+                  {
+                    var RealTime=window.document.getElementById("RealTime");
+                    RealTime.checked=true;
+                  }
+
+                  if(attrib_val.includes("Neo M6"))
+                  {
+                    var NeoM6Check=window.document.getElementById("NeoM6Check");
+                    NeoM6Check.checked=true;
+                  }
+
+                  if(attrib_val.includes("SIM800C"))
+                  {
+                    var Sim800cCheck=window.document.getElementById("Sim800cCheck");
+                    Sim800cCheck.checked=true;
+                  }
+                }
+                //load end
+
+                function updateHiddenInput(checkbox) {
+                  if (checkbox.checked) {
+                    attribute_inpt.value += checkbox.value+",";
+                  } else {
+                    attribute_inpt.value = attribute_inpt.value.replace(checkbox.value+",","");
+                  }
+                }
+              </script>
+            </div>
+            <!--Attribute end-->
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.ipaddress}"/>
+              <input th:value="${hub.getIp_address()}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.ipaddress}" name="ip_address" required>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.username}"/>
+              <input th:value="${hub.getUsername()}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.username}" name="username" required>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputUsername1" th:text="#{label.password}"/>
+              <input th:value="${hub.getPassword()}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.password}" name="password" required>
+            </div>
+
+            <div class="text_input_style" id="map_group" style="margin-top: 0px;border-bottom: none;">
+              <input type="hidden" id="lat_box" name="lat" th:value="${hub.getLat()}"/>
+              <input type="hidden" id="lng_box" name="lng" th:value="${hub.getLng()}"/>
+              <div class="form-group">
+                <div style="width: 100%;height: 400px;display: grid;">
+                  <!--Add new map start-->
+                  <div id="add_new_map_dialog">
+                    <div style="width: 100%;height: 100%;">
+                      <!--Map Start-->
+                      <div style="width:100%; height: 100% ;display: flex;justify-content: center;align-items: center;">
+                        <div id ="map" style = "width:100%; height:100%;"></div>
+                        <div style="position: absolute;z-index: 999;">
+                          <i style="color:#FFAB00;font-size: 50px;" id="maps_pointer" class="mdi mdi-map-marker"></i>
+                        </div>
+                      </div>
+                      <!--Open Street Map Start-->
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin=""/>
+                      <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js" integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg==" crossorigin=""></script>
+                      <script>
+
+                        var mapOptions = {
+                          center: [window.document.getElementById("lat_box").value, window.document.getElementById("lng_box").value],
+                          zoom: 14
+                        }
+
+                        var map_pointer_status="LOCATION";
+
+                        var map = new L.map('map', mapOptions);
+                        var layer = new L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+
+                        map.addLayer(layer);
+
+
+
+                        function onMoveEnd(e)
+                        {
+                          var lat_box=window.document.getElementById("lat_box");
+                          var lng_box=window.document.getElementById("lng_box");
+
+                          lat_box.value=map.getCenter().lat;
+                          lng_box.value=map.getCenter().lng;
+
+                        }
+
+                        map.on('moveend', onMoveEnd);
+
+
+                      </script>
+                      <!--Open Street Map End-->
+                      <!--Map End-->
+
+                    </div>
+                  </div>
+                  <!--Add new map end-->
+                </div>
+              </div>
+              <!--Maps end-->
+            </div>
+
+            <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.done}"/>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!--Right Side Of Content End-->
+
+
+  </div>
+
+</div>
+<!-- content-wrapper ends -->
+
+<!--Resolution field toggle based on IoT model-->
+<script>
+  function toggleResolutionField() {
+    var iotModelSelect = document.getElementById('iot_model_select');
+    var resolutionGroup = document.getElementById('resolution_group');
+    var selectedValue = iotModelSelect.value;
+
+    if (selectedValue.indexOf('ESP32') === 0) {
+      resolutionGroup.style.display = 'none';
+    } else {
+      resolutionGroup.style.display = '';
+    }
+  }
+
+  document.getElementById('iot_model_select').addEventListener('change', toggleResolutionField);
+
+  // Run once on page load (for edit mode where the value is already set)
+  window.addEventListener('DOMContentLoaded', toggleResolutionField);
+</script>
+
+<!--Map visibility toggle based on IoT type: only show the map in STAND mode-->
+<script>
+  function toggleMapField() {
+    var iotTypeSelect = document.getElementById('iot_type_select');
+    var mapGroup = document.getElementById('map_group');
+    var selectedValue = iotTypeSelect.value;
+
+    if (selectedValue === 'STAND') {
+      mapGroup.style.display = '';
+    } else {
+      mapGroup.style.display = 'none';
+    }
+  }
+
+  document.getElementById('iot_type_select').addEventListener('change', toggleMapField);
+
+  // Run once on page load (for edit mode where the value is already set)
+  window.addEventListener('DOMContentLoaded', toggleMapField);
+</script>
+
+<ftr class="insert" th:insert="@{Admin/Components/empty_footer}" />

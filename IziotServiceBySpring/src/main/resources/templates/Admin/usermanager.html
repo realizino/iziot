@@ -1,0 +1,90 @@
+<head class="insert" th:insert="@{Admin/Components/panel_header}" />
+
+<!-- partial -->
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h3 class="page-title">
+                <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                    <i class="mdi mdi-account-multiple "></i>
+                </span></span><span th:text="#{label.usermanager}"/>
+            </h3>
+        </div>
+
+        <div class="row">
+
+            <!--Top Side Of Content Start-->
+            <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <form class="forms-sample" method="post">
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.search}"/>
+                                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.search}" name="SearchValue">
+                            </div>
+                            <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.search}"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!--Top Side Of Content Start-->
+            <!--Bottom Side Of Content Start-->
+            <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+
+                        <div style="float: left;">
+                            <button type="button" th:text="#{label.addnewuser}" onclick="Open_Link_Dialog(this,'/Admin/Panel/UserManager/New')" style=
+                                "cursor: pointer;
+                                color:var(--primary);
+                                background: transparent;
+                                border: none;
+                                outline: none;
+                                margin-left: 0;
+                                padding-left: 0;
+                            "/>
+                        </div>
+
+                        <br>
+                        <br>
+
+                        <h4 class="card-title" th:text="#{label.users}"/>
+                        </p>
+                        <table class="table" th:if="${users.size()>1}">
+                            <thead>
+                            <tr>
+                                <th th:text="#{label.id}"/>
+                                <th th:text="#{label.name}"/>
+                                <th th:text="#{label.usertype}"/>
+                                <th th:text="#{label.username}"/>
+                                <th th:text="#{label.notification}"/>
+                                <th th:text="#{label.edit}"/>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            <tr th:each="user : ${users}" th:if="${user.getId() != user_data.getId()}">
+                                <td th:text="${user.getId()}"/>
+                                <td th:text="${user.getName()}+${user.getFamily()}"/>
+                                <td th:text="${user.getUser_type()}"/>
+                                <td th:text="${user.getUsername()}"/>
+                                <td><i th:onclick="Open_Link_Dialog(this, window.location.protocol + '//' + window.location.host + '/Admin/Panel/UserManager/User/SendNotification/[[${user.getId()}]]')"><i class="mdi mdi-comment" style="font-size: 20px;cursor: pointer;"></i></i></td>
+                                <td><i th:onclick="Open_Link_Dialog(this, window.location.protocol + '//' + window.location.host + '/Admin/Panel/UserManager/User/[[${user.getId()}]]')"><i class="mdi mdi-table-edit" style="font-size: 20px;cursor: pointer;"></i></i></td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                        <div style="margin-top:60px;" th:unless="${users.size()>1}">
+                            <img th:src="@{/Assets/Admin/images/icons/empty.png}" width="150px" style="display:block;margin:0 auto;" />
+                            <p style="width:100%;text-align:center;" th:text="#{label.user_not_found}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Bottom Side Of Content Start-->
+
+        </div>
+
+    </div>
+
+<ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

@@ -1,0 +1,13 @@
+# /etc/systemd/system/myapp.service
+
+[Unit]
+Description= Iziot service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/java -jar /home/iziot/Serive/iziotServiceBySpring/target/jowncms-0.0.1-SNAPSHOT.war
+Restart=always
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

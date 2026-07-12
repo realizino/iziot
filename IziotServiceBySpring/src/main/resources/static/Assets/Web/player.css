@@ -1,0 +1,375 @@
+@font-face {
+    font-family: 'Vazir'; /* thanks to rastikerdar.github.io/vazir-font*/
+    src: url('/Assets/Web/fonts/fonts/Vazir/Vazir-Light-FD-WOL.eot'); /* IE9 Compat Modes */
+    src: url('/Assets/Web/fonts/fonts/Vazir/Vazir-Light-FD-WOL.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('/Assets/Web/fonts/fonts/Vazir/Vazir-Light-FD-WOL.woff') format('woff'), /* Modern Browsers */
+    url('/Assets/Web/fonts/fonts/Vazir/Vazir-Light-FD-WOL.ttf') format('truetype'); /* Safari, Android, iOS */
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+
+@font-face {
+    font-family: 'Vazir'; /* thanks to rastikerdar.github.io/vazir-font*/
+    src: url('/Assets/Web/fonts/fonts/Vazir/Vazir-Bold-FD-WOL.eot'); /* IE9 Compat Modes */
+    src: url('/Assets/Web/fonts/fonts/Vazir/Vazir-Bold-FD-WOL.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('/Assets/Web/fonts/fonts/Vazir/Vazir-Bold-FD-WOL.woff') format('woff'), /* Modern Browsers */
+    url('/Assets/Web/fonts/fonts/Vazir/Vazir-Bold-FD-WOL.ttf') format('truetype'); /* Safari, Android, iOS */
+    font-style: normal;
+    font-weight: bold;
+    text-rendering: optimizeLegibility;
+}
+
+@font-face {
+    font-family: 'iziotfont';
+    src: url("/Assets/Web/fonts/fonts/CenturyGothic.ttf");
+}
+
+@font-face {
+    font-family: 'iziotfont_line';
+    src: url("/Assets/Web/fonts/fonts/GOTHIC.ttf");
+}
+
+
+:root {
+    --boom: #174856;
+    --back: #000000;
+}
+
+* {
+    /*font-family: 'Vazir',Arial,Helvetica,sans-serif;*/
+    font-family: 'iziotfont';
+    -webkit-appearance: none;
+}
+
+html {
+    margin: 0;
+    border: 0;
+}
+
+*
+{
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+body {
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgb(5,15,25);
+}
+
+div.parent {
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+}
+
+#liveview {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#channelStatus {
+    display: inline-block;
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    line-height: 30px;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 0 10px;
+    z-index: 50;
+    border-radius: 1px;
+    box-shadow: 0 0 5px rgb(0 0 0 / 50%);
+}
+
+@media only screen and (max-width: 480px) {
+    #channelStatus {
+        top: 10px;
+        right: 10px;
+        font-size: 16px;
+    }
+}
+
+#channelStatus[status="offline"] {
+    background: linear-gradient(90deg, #e8e8e8, #c6c7ab, #3a3a3a, #ffb5cb);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    color: #000000;
+}
+
+#channelStatus[status="LIVE"] {
+    background: linear-gradient(90deg, #f7913b, #ff0000, #00bcff, #00ffc3);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    color: #FFFFFF;
+}
+
+#channelStatus[status="Nosignal"] {
+    background: linear-gradient(90deg, #f7913b, #ff0000, #00bcff, #00ffc3);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    color: #FFFFFF;
+}
+
+#channelStatus[status="Expired"] {
+    background: linear-gradient(90deg, #f7913b, #ff0000, #00bcff, #00ffc3);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    color: #FFFFFF;
+}
+
+#channelStatus[status="No access"] {
+    background: linear-gradient(90deg, #f7913b, #ff0000, #00bcff, #00ffc3);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    color: #FFFFFF;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+#sensed {
+    display: inline-block;
+    position: absolute;
+    top: 70px;
+    right: 30px;
+    line-height: 30px;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 0 5px;
+    z-index: 50;
+    border-radius: 1px;
+//background: rgba(10,10,10,0.1);
+    color: #FFFFFF;
+}
+
+
+#airsensed {
+    display: inline-block;
+    position: absolute;
+    top: 105px;
+    right: 30px;
+    line-height: 30px;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 0 5px;
+    z-index: 50;
+    border-radius: 1px;
+//background: rgba(10,10,10,0.1);
+    color: #FFFFFF;
+}
+
+@media only screen and (max-width: 480px) {
+    #sensed {
+        top: 50px;
+        /*left: 10px;*/
+        right: 5px;
+        font-size: 16px;
+    }
+}
+
+
+
+#channelInfo {
+    display: block;
+    position: absolute;
+    z-index: 50;
+    height: 50px;
+    line-height: 50px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    padding: 0 20px;
+    border-bottom: 5px solid var(--boom);
+    transition: all 0.5s ease;
+    font-size: 14px;
+}
+
+#channelInfo:hover {
+    height: 70px;
+    line-height: 70px;
+    padding: 0 20px 0 70px;
+    background: rgba(0,0,0,0.25) url(images/watermark.png) no-repeat left center;
+    background-size: 84px auto;
+}
+
+span.caption {
+    display: inline-block;
+    float: left;
+    font-size: 12px;
+    padding-left: 10px;
+    color: rgba(255,255,255,0);
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+#channelInfo a {
+    display: inline-block;
+    float: left;
+    font-size: 16px;
+    text-decoration: none;
+    color: rgba(255,255,255,0.25);
+    vertical-align: middle;
+    font-family: Arial;
+}
+
+#channelInfo:hover > a {
+    color: var(--boom);
+}
+
+#channelInfo:hover > span.caption {
+    border-left: 1px solid var(--boom);
+    color: rgba(255,255,255,0.5);
+}
+
+@media only screen and (max-width: 480px) {
+
+    #channelInfo {
+        display: block;
+        position: absolute;
+        z-index: 50;
+        height: 50px;
+        line-height: 50px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+        padding: 0 10px;
+        border-bottom: 5px solid var(--boom);
+        transition: all 0.5s ease;
+        font-size: 12px;
+    }
+
+    #channelInfo:hover {
+        padding: 0 20px 0 40px;
+        background: rgba(0,0,0,0.5) url(images/watermark.png) no-repeat left center;
+        background-size: 50px auto;
+    }
+
+    span.caption {
+        display: inline-block;
+        float: left;
+        font-size: 8px;
+        padding-left: 10px;
+        color: rgba(255,255,255,0);
+        margin-left: 10px;
+    }
+
+    #channelInfo a {
+        display: inline-block;
+        float: left;
+        font-size: 12px;
+        text-decoration: none;
+        color: rgba(255,255,255,0.25);
+    }
+}
+
+
+@media only screen and (max-width: 320px) {
+    span.caption {
+        display: none;
+    }
+}
+
+#channelInfo span.archived {
+    display: inline-block;
+    position: absolute;
+    font-size: 25px;
+    right: 10px;
+    color: #FFFFFF;
+    cursor: pointer;
+    filter: grayscale(1);
+}
+
+#channelInfo span.archived:hover {
+    filter: grayscale(0);
+}
+
+#fullPlay {
+    display: none;
+    position: fixed;
+    z-index: 50;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: all 0.2s ease;
+    background: url(images/playw.png) no-repeat center center;
+    background-size: 20vh auto;
+    cursor: pointer;
+    backdrop-filter: brightness(0.5);
+}
+
+#fullPlay:hover {
+    background-size: 25vh auto;
+}
+
+
+#lastHours {
+    display: none;
+    position: absolute;
+    z-index: 60;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(2px) grayscale(1);
+}
+
+#lastHours img {
+    display: inline-block;
+    height: 50vh;
+    padding: 15px;
+    margin: calc(25vh - 15px) 0;
+    background: rgba(255,255,255,0.25);
+    border-left: 5px dotted rgba(0,0,0,.5);
+}
+
+@media only screen and (max-width: 480px) {
+    #lastHours {
+        display: none;
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        white-space: nowrap;
+        background: rgba(0,0,0,0.25);
+    }
+
+
+    #lastHours img {
+        height: initial;
+        max-height: 50vh;
+        width: calc(100vw - 40px);
+    }
+}

@@ -1,0 +1,25 @@
+<head class="insert" th:insert="@{Admin/Components/empty_header}" />
+
+<!--Login Main Content Start-->
+<div class="content-wrapper" style="height: 100vh;">
+    <div class="row">
+        <div class="col-md-6 grid-margin stretch-card" style="margin: 0 auto;">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title" style="text-align: center;" th:text="#{label.login}"/>
+                    <p class="card-description" style="text-align: center;" th:text="#{label.please_fill_under_data}"/>
+                    <form class="forms-sample" method="post">
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.2fpassword}"/>
+                            <input type="text" class="form-control" id="exampleInputUsername1" th:pleaceholder="#{label.2fpassword}" name="twofpass">
+                        </div>
+                        <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.login}"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Login Main Content End-->
+
+<hdr class="insert" th:insert="@{Admin/Components/empty_footer}" />

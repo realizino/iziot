@@ -1,0 +1,273 @@
+<head class="insert" th:insert="@{Admin/Components/panel_header}" />
+
+<!-- partial -->
+<div class="main-panel">
+  <div class="content-wrapper">
+
+    <div class="page-header">
+      <h3 class="page-title">
+                <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                  <i class="mdi mdi-camera-iris"></i>
+                </span></span><span th:text="#{label.addnewhub}"/>
+      </h3>
+    </div>
+
+    <div class="row">
+
+      <!--Right Side Of Content Start-->
+      <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <form class="forms-sample" action="/Admin/Panel/AddHubDone" method="post">
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.serialnumber}"/>
+                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.serialnumber}" name="serial_number" required>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.title}"/>
+                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.title}" name="title" required>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.iot_type}"/>
+                <select class="form-control" id="iot_type_select" name="iot_type">
+                  <option value="STAND">STAND</option>
+                  <option value="MOBILE">Mobile</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.iot_model}"></label>
+
+                <select class="form-control" id="iot_model_select" name="iot_model">
+                  <option value="ESP32CAM">ESP32-Cam</option>
+                  <option th:value="'ESP32CAMNEWPROTOCOL-' + #{label.domain}"
+                          th:text="'ESP32-Cam-New Protocol - ' + #{label.domain}">
+                  </option>
+                  <option value="ESP32">ESP32</option>
+                  <option th:value="'ESP32EWPROTOCOL-' + #{label.domain}"
+                          th:text="'ESP32-New Protocol - ' + #{label.domain}">
+                  </option>
+                </select>
+              </div>
+
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.timezone}"/>
+                <select class="form-control" id="exampleInputUsername1" name="timezone">
+                  <option th:each="city : ${cites}" th:text="${city.getName()} + ${city.getTimezone()}" th:value="${city.getTimezone()}"/>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.status}"/>
+                <select class="form-control" id="exampleInputUsername1" name="status">
+                  <option value="Enable">Enable</option>
+                  <option value="Diasable">Diasable</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="resolution_group">
+                <label for="exampleInputUsername1" th:text="#{label.resolution}" name="resolution"/>
+                <select class="form-control" id="exampleInputUsername1" name="resolution">
+                  <option value="96×96">96 × 96</option>
+                  <option value="176×144">176 × 144</option>
+                  <option value="240×176">240 × 176</option>
+                  <option value="320×240">320 × 240</option>
+                  <option value="400×296">400 × 296</option>
+                  <option value="640×480">640 × 480</option>
+                  <option value="800×600">800 × 600</option>
+                  <option value="1024×768">1024 × 768</option>
+                  <option value="1280×1024">1280 × 1024</option>
+                  <option value="1600×1200">1600 × 1200</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.adminnumber}"/>
+                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.adminnumber}" name="admin_number" required>
+              </div>
+
+              <!--Attribute start-->
+              <div style="display: flow" class="form-group">
+                <div class="form-check" style="margin-left: 20px;">
+                  <input class="form-check-input" type="checkbox" value="Thermometer" id="checkbox1" onclick="updateHiddenInput(this)">
+                  <label style="margin-left: 0;" class="form-check-label" for="checkbox1">
+                    Thermometer
+                  </label>
+                </div>
+                <div class="form-check" style="margin-left: 20px;">
+                  <input class="form-check-input" type="checkbox" value="Air quality" id="checkbox2" onclick="updateHiddenInput(this)">
+                  <label style="margin-left: 0;" class="form-check-label" for="checkbox2">
+                    Air quality
+                  </label>
+                </div>
+                <div class="form-check" style="margin-left: 20px;">
+                  <input class="form-check-input" type="checkbox" value="Rotate" id="Rotate" onclick="updateHiddenInput(this)">
+                  <label style="margin-left: 0;" class="form-check-label" for="Rotate">
+                    Rotate
+                  </label>
+                </div>
+                <div class="form-check" style="margin-left: 20px;">
+                  <input class="form-check-input" type="checkbox" value="RealTime" id="RealTime" onclick="updateHiddenInput(this)">
+                  <label style="margin-left: 0;" class="form-check-label" for="RealTime">
+                    Real Time
+                  </label>
+                </div>
+                <div class="form-check" style="margin-left: 20px;">
+                  <input class="form-check-input" type="checkbox" value="Neo M6" id="NeoM6Check" onclick="updateHiddenInput(this)">
+                  <label style="margin-left: 0;" class="form-check-label" for="NeoM6Check">
+                    Neo M6 (GPS)
+                  </label>
+                </div>
+                <div class="form-check" style="margin-left: 20px;">
+                  <input class="form-check-input" type="checkbox" value="SIM800C" id="Sim800cCheck" onclick="updateHiddenInput(this)">
+                  <label style="margin-left: 0;" class="form-check-label" for="Sim800cCheck">
+                    SIM800C GSM GPRS MOD53
+                  </label>
+                </div>
+                <input type="hidden" id="attribute_inpt" name="attribute_inpt">
+                <script>
+                  function updateHiddenInput(checkbox) {
+                    var attribute_inpt = document.getElementById('attribute_inpt');
+                    if (checkbox.checked) {
+                      attribute_inpt.value += checkbox.value+",";
+                    } else {
+                      attribute_inpt.value = attribute_inpt.value.replace(checkbox.value+",","");
+                    }
+                  }
+                </script>
+              </div>
+              <!--Attribute end-->
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.ipaddress}"/>
+                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.ipaddress}" name="ip_address" required>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.username}"/>
+                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.username}" name="username" required>
+              </div>
+
+              <div class="form-group">
+                <label for="exampleInputUsername1" th:text="#{label.password}"/>
+                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.password}" name="password" required>
+              </div>
+
+              <div class="text_input_style" id="map_group" style="margin-top: 0px;border-bottom: none;">
+                <input type="hidden" id="lat_box" name="lat" value="45.421347149780544"/>
+                <input type="hidden" id="lng_box" name="lng" value="-75.71034537140704"/>
+                <div class="form-group">
+                  <div style="width: 100%;height: 400px;display: grid;">
+                    <!--Add new map start-->
+                    <div id="add_new_map_dialog">
+                      <div style="width: 100%;height: 100%;">
+                        <!--Map Start-->
+                        <div style="width:100%; height: 100% ;display: flex;justify-content: center;align-items: center;">
+                          <div id ="map" style = "width:100%; height:100%;"></div>
+                          <div style="position: absolute;z-index: 999;">
+                            <i style="color:#FFAB00;font-size: 50px;" id="maps_pointer" class="mdi mdi-map-marker"></i>
+                          </div>
+                        </div>
+                        <!--Open Street Map Start-->
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin=""/>
+                        <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js" integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg==" crossorigin=""></script>
+                        <script>
+
+                          var mapOptions = {
+                            center: [45.421347149780544, -75.71034537140704],
+                            zoom: 14
+                          }
+
+                          var map_pointer_status="LOCATION";
+
+                          var map = new L.map('map', mapOptions);
+                          var layer = new L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+
+                          map.addLayer(layer);
+
+
+
+                          function onMoveEnd(e)
+                          {
+                            var lat_box=window.document.getElementById("lat_box");
+                            var lng_box=window.document.getElementById("lng_box");
+
+                            lat_box.value=map.getCenter().lat;
+                            lng_box.value=map.getCenter().lng;
+
+                          }
+
+                          map.on('moveend', onMoveEnd);
+
+
+                        </script>
+                        <!--Open Street Map End-->
+                        <!--Map End-->
+
+                      </div>
+                    </div>
+                    <!--Add new map end-->
+                  </div>
+                </div>
+                <!--Maps end-->
+              </div>
+
+
+              <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.new}"/>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!--Right Side Of Content End-->
+
+
+    </div>
+
+  </div>
+  <!-- content-wrapper ends -->
+
+  <!--Resolution field toggle based on IoT model-->
+  <script>
+    function toggleResolutionField() {
+      var iotModelSelect = document.getElementById('iot_model_select');
+      var resolutionGroup = document.getElementById('resolution_group');
+      var selectedValue = iotModelSelect.value;
+
+      if (selectedValue.indexOf('ESP32') === 0) {
+        resolutionGroup.style.display = 'none';
+      } else {
+        resolutionGroup.style.display = '';
+      }
+    }
+
+    document.getElementById('iot_model_select').addEventListener('change', toggleResolutionField);
+
+    // Run once on page load
+    window.addEventListener('DOMContentLoaded', toggleResolutionField);
+  </script>
+
+  <!--Map visibility toggle based on IoT type: only show the map in STAND mode-->
+  <script>
+    function toggleMapField() {
+      var iotTypeSelect = document.getElementById('iot_type_select');
+      var mapGroup = document.getElementById('map_group');
+      var selectedValue = iotTypeSelect.value;
+
+      if (selectedValue === 'STAND') {
+        mapGroup.style.display = '';
+      } else {
+        mapGroup.style.display = 'none';
+      }
+    }
+
+    document.getElementById('iot_type_select').addEventListener('change', toggleMapField);
+
+    // Run once on page load
+    window.addEventListener('DOMContentLoaded', toggleMapField);
+  </script>
+
+  <ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

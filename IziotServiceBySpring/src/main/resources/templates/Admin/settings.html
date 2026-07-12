@@ -1,0 +1,39 @@
+<head class="insert" th:insert="@{Admin/Components/panel_header}" />
+
+<!-- partial -->
+<div class="main-panel">
+    <!--Send Notification To User Start-->
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h3 class="page-title">
+                <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                  <i class="mdi mdi-settings"></i>
+                </span></span></span><span th:text="#{label.setting}"/>
+            </h3>
+        </div>
+        <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" style="text-align: center;" th:text="#{label.setting}"/>
+                        <form class="forms-sample" method="post" action="/Admin/Panel/Settings/Done">
+                            <div class="form-group" style="display: none;">
+                                <label for="exampleInputUsername1" th:text="#{label.version}"/>
+                                <input th:value="${version}" type="text" class="form-control" id="exampleInputUsername1" th:placeholer="#{label.version}" name="version" required>
+                            </div>
+                            <div class="form-group" style="display: none;">
+                                <label for="exampleInputUsername1" th:text="#{label.esp32camcode}"/>
+                                <textarea th:text="${code}" style="height: 150px;resize: vertical;" class="form-control" th:placeholder="#{label.esp32camcode}" name="esp32cam_code" required></textarea>
+                            </div>
+
+                            <br>
+                            <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.updateesp32camcode}"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!--Send Notification To User End-->
+
+<ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

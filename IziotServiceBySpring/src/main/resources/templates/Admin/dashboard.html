@@ -1,0 +1,172 @@
+<head class="insert" th:insert="@{Admin/Components/panel_header}" />
+
+<!-- Charts Start -->
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h3 class="page-title">
+            <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                <i class="mdi mdi-home"></i>
+            </span>
+            <span th:text="#{label.dashboard}"/>
+            </h3>
+        </div>
+
+        <div class="row">
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <!--Cpu usage Chart Start-->
+            <div class="col-lg-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Cpu usage</h4>
+                        <canvas id="cpu_usage" style="height:250px"></canvas>
+                        <script>
+
+                            var cpu_total=[[${systemCpuLoad}]];
+                            var cpu_usage=[[${processCpuLoad}]];
+
+                            const cpu_usage_chart = document.getElementById('cpu_usage').getContext('2d');
+                            const cpu_usage_chart_ = new Chart(cpu_usage_chart, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Total cpu', 'Cpu usage'],
+                                    datasets: [{
+                                        data: [cpu_total, cpu_usage],
+                                        backgroundColor: [
+                                            '#ffc400',
+                                            '#ff3d00',
+                                        ],
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        y: {
+                                            display: false // Hide y-axis numbers
+                                        },
+                                        x: {
+                                            display: false // Hide x-axis numbers
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: {
+                                            enabled: true // Disable tooltips
+                                        }
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <!--Cpu usage Chart End-->
+
+
+            <!--Ram usage Chart Start-->
+            <div class="col-lg-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Ram usage</h4>
+                        <canvas id="ram_usage" style="height:250px"></canvas>
+                        <script>
+
+                            var ram_total=[[${totalram}]];
+                            var ram_usage=[[${usageram}]];
+                            var ram_max=[[${maxram}]];
+
+                            const ram_usage_chart = document.getElementById('ram_usage').getContext('2d');
+                            const ram_usage_chart_ = new Chart(ram_usage_chart, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Total ram', 'Ram usage' , 'Max ram'],
+                                    datasets: [{
+                                        data: [ram_total, ram_usage,ram_max],
+                                        backgroundColor: [
+                                            '#ffc400',
+                                            '#ff3d00',
+                                            '#00BFA5',
+                                        ],
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        y: {
+                                            display: false // Hide y-axis numbers
+                                        },
+                                        x: {
+                                            display: false // Hide x-axis numbers
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: {
+                                            enabled: true // Disable tooltips
+                                        }
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <!--Ram usage Chart end-->
+
+
+            <!--Storage usage Chart Start-->
+            <div class="col-lg-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Storage usage</h4>
+                        <canvas id="storage_usage" style="height:250px"></canvas>
+                        <script>
+
+                            var storage_total=[[${storage_total}]];
+                            var storage_free=[[${storage_free}]];
+                            var storage_used=[[${storage_used}]];
+
+                            const storage_usage_chart = document.getElementById('storage_usage').getContext('2d');
+                            const storage_usage_chart_ = new Chart(storage_usage_chart, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Total storage', 'Storage used' , 'Free storage'],
+                                    datasets: [{
+                                        data: [storage_total, storage_used,storage_free],
+                                        backgroundColor: [
+                                            '#ffc400',
+                                            '#ff3d00',
+                                            '#00BFA5',
+                                        ],
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        y: {
+                                            display: false // Hide y-axis numbers
+                                        },
+                                        x: {
+                                            display: false // Hide x-axis numbers
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: {
+                                            enabled: true // Disable tooltips
+                                        }
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <!--Storage usage Chart end-->
+
+        </div>
+
+    </div>
+    <!-- content-wrapper ends-->
+
+
+    <ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

@@ -1,0 +1,93 @@
+
+
+<!-- partial:partials/_footer.html -->
+<footer class="footer">
+    <div class="container-fluid clearfix">
+        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">iziot</span>
+        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center"><a href="http://www.iziot.ir" target="_blank">iziot</a></span>
+    </div>
+</footer>
+<!-- partial -->
+</div>
+<!-- main-panel ends -->
+</div>
+<!-- page-body-wrapper ends -->
+</div>
+<!-- container-scroller -->
+
+
+
+
+
+
+
+<!--Iframe Dialog Start-->
+<div id="iframe_dialog" style="display: none;">
+    <i class="mdi mdi-close" onclick="Close_Ifram_Dialog(this)"></i>
+    <div id="iframe_dialog_main_content">
+        <iframe id="iframe_dialog_main_content_iframe" src="http://google.com">
+
+        </iframe>
+    </div>
+</div>
+<!--Iframe Dialog End-->
+
+
+
+
+<script>
+    //Browser Dialog Start
+    function Open_Link_Dialog(e, address) {
+        var Dialog = window.document.getElementById("iframe_dialog");
+        var Iframe = window.document.getElementById("iframe_dialog_main_content_iframe");
+        Dialog.style.display = "flex";
+        Iframe.src = address;
+    }
+
+    function Close_Ifram_Dialog(e) {
+        var Dialog = window.document.getElementById("iframe_dialog");
+        Dialog.style.display = "none";
+    }
+    //Browser Dialog End
+
+
+    //Mobile Menu Start
+    var MobileMenuStatus=false;
+    function OpenMobileHamburgerMenu(e){
+        var menu = window.document.getElementsByClassName("sidebar-offcanvas")[0];
+
+        if(!MobileMenuStatus) {
+            menu.style.right = 0;
+            MobileMenuStatus=true;
+        }
+        else{
+            menu.style.right = -720;
+            MobileMenuStatus=false;
+        }
+    }
+    //Mobile Menu End
+
+</script>
+
+
+
+
+
+<!-- plugins:js -->
+<script th:src="@{/Assets/Admin/vendors/js/vendor.bundle.base.js}"></script>
+<!-- endinject -->
+<!-- Plugin js for this page -->
+<script th:src="@{/Assets/Admin/vendors/chart.js/Chart.min.js}"></script>
+<!-- End plugin js for this page -->
+<!-- inject:js -->
+<script th:src="@{/Admin/js/off-canvas.js}"></script>
+<script th:src="@{/Assets/Admin/js/hoverable-collapse.js}"></script>
+<script th:src="@{/Assets/Admin/js/misc.js}"></script>
+<!-- endinject -->
+<!-- Custom js for this page -->
+<script th:src="@{/Assets/Admin/js/dashboard.js'}"></script>
+<script th:src="@{/Assets/Admin/js/todolist.js}"></script>
+<!-- End custom js for this page -->
+<script th:src="@{/Assets/Admin/js/main.js}"></script>
+</body>
+</html>

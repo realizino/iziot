@@ -1,0 +1,122 @@
+<head class="insert" th:insert="@{Admin/Components/panel_header}" />
+
+<!-- partial -->
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h3 class="page-title">
+                <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                  <i class="mdi mdi-map "></i>
+                </span></span><span th:text="#{label.cites}"/>
+            </h3>
+        </div>
+
+        <div class="row">
+
+            <!--Top Side Of Content Start-->
+            <div class="col-lg-6 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:if="${edit_city==null}" action="/Admin/Panel/Cities/New" class="forms-sample" method="post">
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.city}"/>
+                                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.city}" name="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.area}"/>
+                                <select class="form-control" id="exampleInputUsername1" name="area">
+                                    <option value="0" th:text="#{label.state}"/>
+                                    <option th:each="city : ${Cites}" th:value="${city.getId()}" th:text="${city.getName()}"/>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.status}"/>
+                                <select class="form-control" id="exampleInputUsername1" name="status">
+                                    <option value="1" th:text="#{label.active}"/>
+                                    <option value="0" th:text="#{label.deactive}"/>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.timezone}"/>
+                                <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.timezone}" name="timezone">
+                            </div>
+                            <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.new}"/>
+                        </form>
+                        <form th:unless="${edit_city==null}" class="forms-sample" method="post" action="/Admin/Panel/Cities/Edit">
+                            <input type="hidden" th:value="${edit_city.getId()}" name="id"/>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.city}"/>
+                                <input th:value="${edit_city.getName()}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.city}" name="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.area}"/>
+                                <select class="form-control" id="exampleInputUsername1" name="area">
+                                    <option value="0" th:text="#{label.state}"/>
+                                    <option th:each="city : ${Cites}" th:selected="${(city.getId()==edit_city.getArea())?true:false}" th:value="${city.getId()}" th:text="${city.getName()}"/>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.status}"/>
+                                <select class="form-control" id="exampleInputUsername1" name="status">
+                                    <option value="1" th:text="#{label.active}"/>
+                                    <option value="0" th:selected="${(edit_city.getStatus()=='0')?true:false}" th:text="#{label.deactive}"/>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.timezone}"/>
+                                <input th:value="${edit_city.getTimezone()}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.timezone}" name="timezone">
+                            </div>
+                            <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.edit}"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!--Top Side Of Content Start-->
+
+
+            <!--Bottom Side Of Content Start-->
+            <div class="col-lg-6 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{label.cites}"/>
+                        </p>
+                        <table th:if="${Cites.size>0}" class="table">
+                            <thead>
+                            <tr>
+                                <th th:text="#{label.id}"/>
+                                <th th:text="#{label.city}"/>
+                                <th th:text="#{label.stateid}"/>
+                                <th th:text="#{label.status}"/>
+                                <th th:text="#{label.edit}"/>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                                <tr th:each="city : ${Cites}">
+                                    <td th:text="${city.getId()}"/>
+                                    <td th:text="${city.getName()}"/>
+                                    <td th:text="${city.getArea()}"/>
+
+                                    <td th:if="${city.getStatus()=='1'}" th:text="#{label.active}"/>
+                                    <td th:unless="${city.getStatus()=='1'}" th:text="#{label.deactive}"/>
+
+                                    <td><a th:href="@{/Admin/Panel/Cities/Edit/}+${city.getId()}"><i class="mdi mdi-table-edit" style="font-size: 20px;color:color:var(--primary);cursor: pointer;"></i></a></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                        <div th:unless="${Cites.size>0}" class="card-body">
+                            <img th:src="@{/Assets/Admin/images/icons/empty.png}" style="width: 150px;display: block;margin: 0 auto;"/>
+                            <p style="text-align: center;" th:text="#{label.nothing_found}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Bottom Side Of Content Start-->
+
+        </div>
+
+    </div>
+<!-- content-wrapper ends -->
+
+<ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

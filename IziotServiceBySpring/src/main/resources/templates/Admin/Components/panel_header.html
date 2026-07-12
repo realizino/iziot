@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!--    <title th:text="${title}"/>-->
+    <title>iziot</title>
+    <link rel="stylesheet" th:href="@{/Assets/Admin/vendors/mdi/css/materialdesignicons.min.css}">
+    <link rel="stylesheet" th:href="@{/Assets/Admin/vendors/css/vendor.bundle.base.css}">
+    <link rel="stylesheet" th:href="@{/Assets/Admin/css/style.css}">
+    <link rel="stylesheet" th:href="@{/Assets/Admin/css/castum_style.css}">
+    <!-- End layout styles -->
+    <link rel="shortcut icon" th:href="@{/Assets/Admin/images/ico.png}" />
+    <link rel="icon" type="image/x-icon" th:href="@{/Assets/Admin/images/ico.png}">
+    <link rel="icon" type="image/png" th:href="@{/Assets/Admin/images/ico.png}">
+</head>
+<body>
+<div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+        <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+            <a class="navbar-brand brand-logo" href="/"><img th:src="@{/Assets/Admin/images/logo.png}" style="height: 65px;width: auto;" alt="logo" /></a>
+            <a class="navbar-brand brand-logo-mini" href="/"><img th:src="@{/Assets/Admin/images/ico.png}" alt="logo" /></a>
+        </div>
+        <div class="navbar-menu-wrapper d-flex align-items-stretch">
+            <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+                <span class="mdi mdi-menu"></span>
+            </button>
+            <ul class="navbar-nav navbar-nav-right">
+                <li class="nav-item nav-profile dropdown">
+                    <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+                        <div class="nav-profile-img">
+                            <img th:src="@{~/Assets/Admin/images/faces/face.png}" alt="image">
+                            <span class="availability-status online"></span>
+                        </div>
+                        <div class="nav-profile-text">
+                            <p class="mb-1 text-black" th:text="${user_data.name+' '+user_data.family}" />
+                        </div>
+                    </a>
+                    <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
+                        <a class="dropdown-item" href="/Admin/Panel/Logout">
+                            <i class="mdi mdi-logout mr-2 text-primary"></i><span th:text="#{label.exit}">
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item d-none d-lg-block full-screen-link">
+                    <a class="nav-link">
+                        <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+                    </a>
+                </li>
+            </ul>
+            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas" onclick="OpenMobileHamburgerMenu(this)">
+                <span class="mdi mdi-menu"></span>
+            </button>
+        </div>
+    </nav>
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+        <!-- partial:partials/_sidebar.html -->
+        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+
+
+            <ul class="nav">
+                <li class="nav-item nav-profile">
+                    <a href="/Admin/Panel/Profile" class="nav-link">
+                        <div class="nav-profile-image">
+                            <img th:src="@{/Assets/Admin/images/faces/face.png}" alt="profile">
+                            <span class="login-status online"></span>
+                            <!--change to offline or busy as needed-->
+                        </div>
+                        <div class="nav-profile-text d-flex flex-column" style="margin-right: 10px;">
+                            <span class="font-weight-bold mb-2" th:text="${user_data.name+' '+user_data.family}"/>
+                            <span class="text-secondary text-small" th:text="#{label.admin}"/>
+                        </div>
+                        <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Dashboard">
+                        <span class="menu-title" th:text="#{label.dashboard}"/>
+                        <i class="mdi mdi-home menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/AddHub">
+                        <span class="menu-title" th:text="#{label.addhub}"/>
+                        <i class="mdi mdi-camera-iris menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Hubs">
+                        <span class="menu-title" th:text="#{label.hubs}"/>
+                        <i class="mdi mdi-camera-gopro menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/UserManager">
+                        <span class="menu-title" th:text="#{label.usermanager}"/>
+                        <i class="mdi mdi-account-multiple menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item" style="display: none;">
+                    <a class="nav-link" href="/Admin/Panel/Charts">
+                        <span class="menu-title" th:text="#{label.chart}"/>
+                        <i class="mdi mdi-chart-bar menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Groups">
+                        <span class="menu-title" th:text="#{label.access}"/>
+                        <i class="mdi mdi-fingerprint menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Cities">
+                        <span class="menu-title" th:text="#{label.cites}"/>
+                        <i class="mdi mdi-map menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/FileManager">
+                        <span class="menu-title" th:text="#{label.filemanager}"/>
+                        <i class="mdi mdi-folder menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Profile">
+                        <span class="menu-title" th:text="#{label.profile}"/>
+                        <i class="mdi mdi-account menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Settings">
+                        <span class="menu-title" th:text="#{label.setting}"/>
+                        <i class="mdi mdi-settings menu-icon"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Panel/Logout">
+                        <span class="menu-title" th:text="#{label.exit}"/>
+                        <i class="mdi mdi-logout menu-icon"></i>
+                    </a>
+                </li>
+
+            </ul>
+
+
+        </nav>
+

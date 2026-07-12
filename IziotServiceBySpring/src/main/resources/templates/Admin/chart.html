@@ -1,0 +1,90 @@
+<head class="insert" th:insert="@{Admin/Components/panel_header}" />
+
+<!-- Charts Start -->
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h3 class="page-title">
+                <span class="page-title-icon bg-gradient-primary text-white mr-2">
+                    <i class="mdi mdi-chart-bar"></i>
+                </span></span><span th:text="#{label.chart}"/>
+            </h3>
+        </div>
+
+        <div class="row">
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <!--Users Chart Start-->
+            <div class="col-lg-6 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{label.viewchart}"/>
+                        <canvas id="video_make" style="height:250px"></canvas>
+                        <script>
+                            const video_make_ctx = document.getElementById('video_make').getContext('2d');
+                            const video_make = new Chart(video_make_ctx, {
+                                type: 'polarArea',
+                                data: {
+                                    labels: ['کل سرویس ها', 'سرویس های این هفته'],
+                                    datasets: [{
+                                        label: '# of Votes',
+                                        data: [50, 80],
+                                        backgroundColor: [
+                                            '#ffc400',
+                                            '#ff3d00',
+                                        ],
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true
+                                        }
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <!--Users Chart End-->
+
+            <!--Users Chart Start-->
+            <div class="col-lg-6 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{label.weekviewchart}"/>
+                        <canvas id="barChart" style="height:230px"></canvas>
+                        <script>
+                            const ctx = document.getElementById('barChart').getContext('2d');
+                            const SiteView = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: ['7', '6', '5', '4', '3', '2','1','امروز'],
+                                    datasets: [{
+                                        label: 'سرویس های این هفته',
+                                        data: [1,2,3,4,5,6,7,8]
+                            }],
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                            }});
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <!--Users Chart End-->
+
+        </div>
+
+    </div>
+<!-- content-wrapper ends-->
+
+
+<ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

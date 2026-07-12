@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <meta http-equiv="cache-control" content="private" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <meta http-equiv="cleartype" content="on" />
+    <link rel="stylesheet" th:href="@{/Assets/Web/player.css}">
+    <link rel="icon" type="image/png" th:href="@{/Assets/Admin/images/ico.png}">
+</head>
+<body>
+    <div class="parent" id="boom">
+        <input type="hidden" th:value="${hub_serial}" id="serialbox">
+        <img id="liveview" />
+        <span id="channelStatus" fpm="10" status="offline" runat="server" clientidmode="Static"></span>
+        <span id="fullPlay" onclick="relo()"></span>
+        <span id="channelInfo" clientidmode="Static">
+            <a href="https://www.iziot.ir/" target="_blank">iziot.ir</a><span class="caption">iziot - Live Streaming & Data Processing</span><span class="archived" onclick="showLastFrames()">📅</span>
+        </span>
+        <span id="sensed"></span>
+        <span id="airsensed"></span>
+        <span id="lastHours" clientidmode="Static" onclick="hideLastFrames()"></span>
+    </div>
+
+    <script type="text/javascript">
+
+        var j=0;
+        var canupdate=true;
+
+        if (document.getElementById("channelStatus").hasAttribute("fpm"))
+        {
+            update();
+            // setInterval( ()=>update(),60000 / parseInt(document.getElementById("channelStatus").getAttribute("fpm")) );
+            setInterval( ()=>update(),1500 / parseInt(document.getElementById("channelStatus").getAttribute("fpm")) );
+        }
+        else
+        {
+            document.getElementById("liveview").src = "/Assets/Web/images/noaccess.jpg";
+            document.getElementById("channelStatus").innerHTML = "No access";
+            document.getElementById("channelStatus").setAttribute("status", "offline");
+        }
+
+
+        //Disable refresh every 10 minate start
+        setInterval(function () {
+            document.getElementById("liveview").src = "/Assets/Web/images/noaccess.jpg";
+            document.getElementById("channelStatus").innerHTML = "No access";
+            document.getElementById("channelStatus").setAttribute("status", "offline")
+            document.getElementById("sensed").style.display="none";
+            document.getElementById("airsensed").style.display="none";
+            canupdate=false;
+        },580000);
+        //Disable refresh every 10 minate end
+
+
+        function randomRefresh() {
+            var RandInt = Math.floor(Math.random() * 9999);
+            var DataTimeNow = new Date();
+            var result = DataTimeNow.getSeconds() + (DataTimeNow.getMinutes() * 60) + (DataTimeNow.getHours() * 3600) + (DataTimeNow.getDate() * 86400);
+            return String(result) + String(RandInt);
+        }
+
+        function relo() {
+            location.reload();
+        }
+
+        function update() {
+            if(canupdate)
+            {
+                var serialbox=window.document.getElementById("serialbox");
+                var _url = "/api/hub/"+serialbox.value;
+                //console.log(_url);
+                var request = new XMLHttpRequest();
+                request.open("GET", _url, true);
+                request.send(null);
+                request.onreadystatechange = function () {
+
+                    if (request.readyState == 4 && request.status == 200) {
+
+                        //console.log("response text is " + request.responseText);
+                        var json_response=JSON.parse(request.responseText);
+
+                        //console.log("Reponse is "+request.responseText);
+
+                        if (json_response.status == "nosignal")
+                        {
+                            //clearInterval(i);
+                            document.getElementById("channelStatus").innerHTML = "No signal";
+                            document.getElementById("liveview").src = "/Assets/Web/images/nosignal.jpg";
+                            document.getElementById("channelStatus").setAttribute("status", "Nosignal");
+                            return;
+                        }
+                        else if (json_response.status == "noaccess")
+                        {
+                            //clearInterval(i);
+                            document.getElementById("channelStatus").innerHTML = "No access";
+                            document.getElementById("liveview").src = "/Assets/Web/images/noaccess.jpg";
+                            document.getElementById("channelStatus").setAttribute("status", "Noaccess");
+                            return;
+                        }
+                        else if (json_response.status == "OK")
+                        {
+                            console.log("OK status");
+                            console.log("image url "+"/api/last_img/"+serialbox.value);
+                            document.getElementById("liveview").src = "/api/last_img/"+serialbox.value+"/"+j;
+
+                            /**************************/
+                            if(json_response.lastAirQuality!="")
+                            {
+                                document.getElementById("sensed").innerHTML = json_response.lastAirQuality;
+                                document.getElementById("sensed").style.fontSize="14px";
+                            }
+                            else
+                            {
+                                document.getElementById("sensed").innerHTML = json_response.lastSensed;
+                                document.getElementById("sensed").style.fontSize="20px";
+                            }
+                            /**************************/
+
+                            //document.getElementById("airsensed").innerHTML = json_response.lastAirQuality;
+                            document.getElementById("channelStatus").innerHTML = "Live";
+                            document.getElementById("channelStatus").setAttribute("status", "LIVE");
+                            j++;
+                        }
+                    }
+                    else
+                    {
+                        //clearInterval(i);
+                        document.getElementById("channelStatus").innerHTML = "Offline";
+                        document.getElementById("channelStatus").setAttribute("status", "offline");
+                        document.getElementById("sensed").innerHTML="";
+                        return;
+                    }
+                }
+            }
+
+        }
+
+        function giveme(a, elid) {
+            var serialbox=window.document.getElementById("serialbox");
+            var _url = "/api/"+a+"/"+serialbox.value;
+            var request = new XMLHttpRequest();
+            request.open("GET", _url, true);
+            request.send(null);
+            request.onreadystatechange = function () {
+                if (request.readyState == 4 && request.status == 200) {
+                    //console.log("Last day is " + request.responseText + "\t" + _url);
+                    document.getElementById(elid).innerHTML = request.responseText;
+                }
+            }
+        }
+
+        function showLastFrames() {
+            giveme("last-day-images", "lastHours");
+            document.getElementById("lastHours").style.display = "block";
+        }
+
+        function hideLastFrames() {
+            document.getElementById("lastHours").style.display = "none";
+        }
+
+        document.getElementById("boom").ondblclick = function () {
+            if (this.requestFullscreen) {
+                this.requestFullscreen();
+            }
+            else if (this.mozRequestFullScreen) {
+                this.mozRequestFullScreen();
+            }
+            else if (this.webkitRequestFullscreen) {
+                this.webkitRequestFullscreen();
+            }
+            else if (this.msRequestFullscreen) {
+                this.msRequestFullscreen();
+            }
+        };
+
+    </script>
+
+</body>
+</html>

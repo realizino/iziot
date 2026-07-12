@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <meta http-equiv="cache-control" content="private" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <meta http-equiv="cleartype" content="on" />
+    <link rel="stylesheet" th:href="@{/Assets/Web/player.css}">
+    <link rel="icon" type="image/png" th:href="@{/Assets/Admin/images/ico.png}">
+</head>
+<body>
+<div class="parent" id="boom">
+    <input type="hidden" th:value="${hub_serial}" id="serialbox">
+
+    <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;">
+<!--        <video src="http://localhost:8080/Stream/HubStream/102030" controls autoplay>-->
+<!--            Your browser does not support the <code>video</code> element.-->
+<!--        </video>-->
+        <canvas id="player" style="width: 100%;height: 100%;background: #000;">
+            Your browser sucks.
+        </canvas>
+
+    </div>
+
+    <span id="channelStatus" fpm="10" status="offline" runat="server" clientidmode="Static"></span>
+    <span id="fullPlay" onclick="relo()"></span>
+    <span id="channelInfo" clientidmode="Static">
+            <a href="https://www.iziot.ir/" target="_blank">iziot.ir</a><span class="caption">iziot - Live Streaming & Data Processing</span><span class="archived" onclick="showLastFrames()">📅</span>
+        </span>
+    <span id="sensed"></span>
+    <span id="airsensed"></span>
+    <span id="lastHours" clientidmode="Static" onclick="hideLastFrames()"></span>
+</div>
+
+<script type="text/javascript">
+
+    var j=0;
+    var canupdate=true;
+
+    if (document.getElementById("channelStatus").hasAttribute("fpm"))
+    {
+        update();
+        setInterval( ()=>update(),60000 / parseInt(document.getElementById("channelStatus").getAttribute("fpm")) );
+        // setInterval( ()=>update(),1500 / parseInt(document.getElementById("channelStatus").getAttribute("fpm")) );
+    }
+    else
+    {
+        document.getElementById("channelStatus").innerHTML = "No access";
+        document.getElementById("channelStatus").setAttribute("status", "offline");
+    }
+
+
+    //Disable refresh every 10 minate start
+    setInterval(function () {
+        document.getElementById("channelStatus").innerHTML = "No access";
+        document.getElementById("channelStatus").setAttribute("status", "offline")
+        document.getElementById("sensed").style.display="none";
+        document.getElementById("airsensed").style.display="none";
+        canupdate=false;
+    },580000);
+    //Disable refresh every 10 minate end
+
+
+    function randomRefresh() {
+        var RandInt = Math.floor(Math.random() * 9999);
+        var DataTimeNow = new Date();
+        var result = DataTimeNow.getSeconds() + (DataTimeNow.getMinutes() * 60) + (DataTimeNow.getHours() * 3600) + (DataTimeNow.getDate() * 86400);
+        return String(result) + String(RandInt);
+    }
+
+    function relo() {
+        location.reload();
+    }
+
+    function update() {
+        if(canupdate)
+        {
+            var serialbox=window.document.getElementById("serialbox");
+            var _url = "/api/hub/"+serialbox.value;
+            //console.log(_url);
+            var request = new XMLHttpRequest();
+            request.open("GET", _url, true);
+            request.send(null);
+            request.onreadystatechange = function () {
+
+                if (request.readyState == 4 && request.status == 200) {
+
+                    //console.log("response text is " + request.responseText);
+                    var json_response=JSON.parse(request.responseText);
+
+                    //console.log("Reponse is "+request.responseText);
+
+                    if (json_response.status == "nosignal")
+                    {
+                        //clearInterval(i);
+                        document.getElementById("channelStatus").innerHTML = "No signal";
+                        document.getElementById("channelStatus").setAttribute("status", "Nosignal");
+                        return;
+                    }
+                    else if (json_response.status == "noaccess")
+                    {
+                        //clearInterval(i);
+                        document.getElementById("channelStatus").innerHTML = "No access";
+                        document.getElementById("channelStatus").setAttribute("status", "Noaccess");
+                        return;
+                    }
+                    else if (json_response.status == "OK")
+                    {
+                        /**************************/
+                        if(json_response.lastAirQuality!="")
+                        {
+                            document.getElementById("sensed").innerHTML = json_response.lastAirQuality;
+                            document.getElementById("sensed").style.fontSize="14px";
+                        }
+                        else
+                        {
+                            document.getElementById("sensed").innerHTML = json_response.lastSensed;
+                            document.getElementById("sensed").style.fontSize="20px";
+                        }
+                        /**************************/
+
+                        //document.getElementById("airsensed").innerHTML = json_response.lastAirQuality;
+                        document.getElementById("channelStatus").innerHTML = "Live";
+                        document.getElementById("channelStatus").setAttribute("status", "LIVE");
+                        j++;
+                    }
+                }
+                else
+                {
+                    //clearInterval(i);
+                    document.getElementById("channelStatus").innerHTML = "Offline";
+                    document.getElementById("channelStatus").setAttribute("status", "offline");
+                    document.getElementById("sensed").innerHTML="";
+                    return;
+                }
+            }
+        }
+
+    }
+
+    function giveme(a, elid) {
+        var serialbox=window.document.getElementById("serialbox");
+        var _url = "/api/"+a+"/"+serialbox.value;
+        var request = new XMLHttpRequest();
+        request.open("GET", _url, true);
+        request.send(null);
+        request.onreadystatechange = function () {
+            if (request.readyState == 4 && request.status == 200) {
+                //console.log("Last day is " + request.responseText + "\t" + _url);
+                document.getElementById(elid).innerHTML = request.responseText;
+            }
+        }
+    }
+
+    function showLastFrames() {
+        giveme("last-day-images", "lastHours");
+        document.getElementById("lastHours").style.display = "block";
+    }
+
+    function hideLastFrames() {
+        document.getElementById("lastHours").style.display = "none";
+    }
+
+    document.getElementById("boom").ondblclick = function () {
+        if (this.requestFullscreen) {
+            this.requestFullscreen();
+        }
+        else if (this.mozRequestFullScreen) {
+            this.mozRequestFullScreen();
+        }
+        else if (this.webkitRequestFullscreen) {
+            this.webkitRequestFullscreen();
+        }
+        else if (this.msRequestFullscreen) {
+            this.msRequestFullscreen();
+        }
+    };
+
+</script>
+<script>
+    // namespace MJPEG { ...
+    var MJPEG = (function(module) {
+        "use strict";
+
+        // class Stream { ...
+        module.Stream = function(args) {
+            var self = this;
+            var autoStart = args.autoStart || false;
+
+            self.url = args.url;
+            self.refreshRate = args.refreshRate || 500;
+            self.onStart = args.onStart || null;
+            self.onFrame = args.onFrame || null;
+            self.onStop = args.onStop || null;
+            self.callbacks = {};
+            self.running = false;
+            self.frameTimer = 0;
+
+            self.img = new Image();
+            if (autoStart) {
+                self.img.onload = self.start;
+            }
+            self.img.src = self.url;
+
+            function setRunning(running) {
+                self.running = running;
+                if (self.running) {
+                    self.img.src = self.url;
+                    self.frameTimer = setInterval(function() {
+                        if (self.onFrame) {
+                            self.onFrame(self.img);
+                        }
+                    }, self.refreshRate);
+                    if (self.onStart) {
+                        self.onStart();
+                    }
+                } else {
+                    self.img.src = "#";
+                    clearInterval(self.frameTimer);
+                    if (self.onStop) {
+                        self.onStop();
+                    }
+                }
+            }
+
+            self.start = function() { setRunning(true); }
+            self.stop = function() { setRunning(false); }
+        };
+
+        // class Player { ...
+        module.Player = function(canvas, url, options) {
+
+            var self = this;
+            if (typeof canvas === "string" || canvas instanceof String) {
+                canvas = document.getElementById(canvas);
+            }
+            var context = canvas.getContext("2d");
+
+            if (! options) {
+                options = {};
+            }
+            options.url = url;
+            options.onFrame = updateFrame;
+            options.onStart = function() { console.log("started"); }
+            options.onStop = function() { console.log("stopped"); }
+
+            self.stream = new module.Stream(options);
+
+            canvas.addEventListener("click", function() {
+                if (self.stream.running) { self.stop(); }
+                else { self.start(); }
+            }, false);
+
+            function scaleRect(srcSize, dstSize) {
+                var ratio = Math.min(dstSize.width / srcSize.width,
+                    dstSize.height / srcSize.height);
+                var newRect = {
+                    x: 0, y: 0,
+                    width: srcSize.width * ratio,
+                    height: srcSize.height * ratio
+                };
+                newRect.x = (dstSize.width/2) - (newRect.width/2);
+                newRect.y = (dstSize.height/2) - (newRect.height/2);
+                return newRect;
+            }
+
+            function updateFrame(img) {
+                var srcRect = {
+                    x: 0, y: 0,
+                    width: img.naturalWidth,
+                    height: img.naturalHeight
+                };
+                var dstRect = scaleRect(srcRect, {
+                    width: canvas.width,
+                    height: canvas.height
+                });
+                try {
+                    context.drawImage(img,
+                        srcRect.x,
+                        srcRect.y,
+                        srcRect.width,
+                        srcRect.height,
+                        dstRect.x,
+                        dstRect.y,
+                        dstRect.width,
+                        dstRect.height
+                    );
+                    console.log(".");
+                } catch (e) {
+                    // if we can't draw, don't bother updating anymore
+                    self.stop();
+                    console.log("!");
+                    throw e;
+                }
+            }
+
+            self.start = function() { self.stream.start(); }
+            self.stop = function() { self.stream.stop(); }
+        };
+
+        return module;
+
+    })(MJPEG || {});
+</script>
+
+<script>
+
+    const canvas = document.getElementById('player');
+    const dpr = window.devicePixelRatio || 1;
+
+    const rect = canvas.getBoundingClientRect();
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
+    var player = new MJPEG.Player("player", "http://localhost:8080/Stream/HubStream/102030");
+    player.start();
+</script>
+
+</body>
+</html>

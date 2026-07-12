@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+
+    <session-factory>
+
+        <property name="connection.url">jdbc:mysql://localhost:3306/b_service</property>
+        <property name="dialect">org.hibernate.dialect.MySQL8Dialect</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password"></property>
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.show_sql">false</property>
+        <property name="hibernate.format_sql">false</property>
+
+<!--        <property name="connection.pool_size">40960</property>-->
+<!--        <property name="c3p0.min_size">1</property>-->
+<!--        <property name="c3p0.max_size">50000</property>-->
+<!--        <property name="c3p0.timeout">30000</property>-->
+<!--        <property name="c3p0.max_statements">50000</property>-->
+<!--        <property name="c3p0.idle_test_period">300000</property>-->
+<!--        <property name="current_session_context_class">thread</property>-->
+<!--        <property name="hbm2ddl.auto">update</property>-->
+
+
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.users_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.userstype_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.user_verify_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.notifications_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.settings_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.city_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.file_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.hub_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.images_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.images_arch_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.temperatures_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.temperatures_arch_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.ai_tags_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.airquality_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.airquality_arch_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.location_tbl"/>
+        <mapping class="com.sorapp.jowncms.jowncms.Models.Database.location_arch_tbl"/>
+
+
+    </session-factory>
+
+</hibernate-configuration>

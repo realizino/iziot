@@ -1,0 +1,69 @@
+@font-face
+{
+    font-family: 'iran_sans';
+    src: url('../fonts/IRANSans/IRANSans.ttf');
+}
+
+#iframe_dialog
+{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top:0;
+    left:0;
+    background: #000000AA;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#iframe_dialog>i
+{
+    position: absolute;
+    top:0;
+    left:0;
+    color: #FFF;
+    margin: 10px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+#iframe_dialog_main_content
+{
+    width: 80%;
+    height:80%;
+    border-radius: 5px;
+    overflow: hidden;
+    padding: 5px;
+    background-color: #eee;
+}
+
+#iframe_dialog_main_content_iframe
+{
+    width: 100%;
+    height: 100%;
+    outline: none;
+    border:none;
+}
+
+.stretch-card > .card
+{
+    overflow: scroll;
+}
+
+.stretch-card > .card::-webkit-scrollbar
+{
+    display: none;
+}
+
+.navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini img ,.navbar .navbar-brand-wrapper .navbar-brand img
+{
+    width: auto !important;
+    max-width: none !important;
+}
+
+a , td>i , td>a>i ,td>a>li , td>li
+{
+    color: #174856;
+}

@@ -1,0 +1,33 @@
+<head class="insert" th:insert="@{Admin/Components/empty_header}" />
+
+<!--Send Notification To User Start-->
+<div class="content-wrapper" style="height: 100vh;">
+    <div class="row">
+        <div class="col-md-11 grid-margin stretch-card" style="margin: 50px auto;">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title" style="text-align: center;" th:text="#{label.notification}"/>
+                    <p class="card-description" style="text-align: center;" th:text="#{label.please_fill_under_data}"/>
+                    <form class="forms-sample" method="post" action="/Admin/Panel/UserManager/User/SendNotifications/Done">
+                        <input type="hidden" th:value="${user_id}" name="user_id"/>
+                        <div class="form-group">
+                            <label for="exampleInputUsername1" th:text="#{label.title}"/>
+                            <input type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.title}" name="title">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.text}"/>
+                            <textarea style="height: 60px;" class="form-control" id="exampleInputPassword1" th:placeholder="#{label.text}" name="content_text"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1" th:text="#{label.link}"/>
+                            <input type="text" class="form-control" id="exampleInputPassword1" th:placeholder="#{label.link}" name="link">
+                        </div>
+                        <button style="width: 100%;" type="submit" class="btn btn-gradient-primary mr-2" th:text="#{label.send}"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<!--Send Notification To User End-->
+
+<ftr class="insert" th:insert="@{Admin/Components/empty_footer}" />
