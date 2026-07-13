@@ -98,6 +98,7 @@ public class IOTHubController
                     }
 
                 } catch (Exception e) {
+                    System.err.println("Error : "+e.getMessage());
                 }
                 if (upload_status) {
                     return ResponseEntity.ok().body("{\"status\":\"success\"}");
@@ -163,6 +164,7 @@ public class IOTHubController
     @PostMapping("/Loc")
     public ResponseEntity<String> AddLoc(@RequestHeader("HubFlag") String HubFlag, @RequestParam("loc") String loc)
     {
+        System.out.println("Loc : "+loc);
         if(GetHubData(HubFlag)) {
 
             if (Hub.getStatus().equals("Enable") || Hub.getStatus().equals("Poor")) {
@@ -432,7 +434,7 @@ public class IOTHubController
     {
         if(!LocationValue.trim().equals(""))
         {
-            String[] parts = LocationValue.split(";");
+            String[] parts = LocationValue.split(",");
 
             if(parts.length < 2)
             {

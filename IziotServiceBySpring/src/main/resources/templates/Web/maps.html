@@ -11,6 +11,9 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
     <meta http-equiv="cleartype" content="on" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/Assets/Web/maps.css}">
     <link rel="icon" type="image/png" th:href="@{/Assets/Admin/images/ico.png}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin="" />
@@ -21,13 +24,59 @@
     <input type="hidden" th:value="${hub_title}" id="titlebox">
     <input type="hidden" th:value="${lat}" id="latbox">
     <input type="hidden" th:value="${lng}" id="lngbox">
+    <input type="hidden" th:value="${hub_has_camera}" id="hascamerabox">
+    <input type="hidden" th:value="${hub_has_location}" id="haslocationbox">
 
     <div id="map"></div>
 
-    <span id="channelStatus" status="offline" clientidmode="Static"></span>
-    <span id="channelInfo" clientidmode="Static">
-            <a href="https://www.iziot.ir/" target="_blank">iziot.ir</a><span class="caption">iziot - Live Streaming & Data Processing</span><span class="archived" id="trailToggle" onclick="toggleTrail()">🕒 24h</span>
-        </span>
+    <!-- Shown instead of a meaningless (0,0) map centering when we have no location at all -->
+    <div id="noLocationOverlay" class="no-location-overlay" style="display:none;">
+        <span class="no-location-icon">📡</span>
+        <span>No location yet</span>
+    </div>
+
+    <!-- Top-left: live status -->
+    <div id="channelStatus" status="offline">
+        <span class="status-dot"></span>
+        <span class="status-text">Connecting</span>
+    </div>
+
+    <!-- Top-left (below status): camera snapshot, shown only for CAM devices -->
+    <div id="cameraPanel" class="camera-panel" style="display:none;">
+        <div class="camera-panel-header">
+            <span>📷 Live Snapshot</span>
+            <span id="cameraUpdate" class="last-update"></span>
+        </div>
+        <div class="camera-thumb-wrap" id="cameraThumbWrap">
+            <img id="cameraThumb" alt="Latest snapshot">
+            <div class="camera-zoom-hint">🔍 Tap to enlarge</div>
+        </div>
+    </div>
+
+    <!-- Top-right: layer switcher -->
+    <div id="layerSwitcher" class="layer-switcher">
+        <button class="layer-btn active" data-layer="standard" title="Streets"><span class="layer-icon">🛣️</span><span class="layer-label">Streets</span></button>
+        <button class="layer-btn" data-layer="satellite" title="Satellite"><span class="layer-icon">🛰️</span><span class="layer-label">Satellite</span></button>
+        <button class="layer-btn" data-layer="terrain" title="Terrain"><span class="layer-icon">🏔️</span><span class="layer-label">Terrain</span></button>
+        <button class="layer-btn" data-layer="humanitarian" title="Humanitarian"><span class="layer-icon">🌍</span><span class="layer-label">Humanitarian</span></button>
+    </div>
+
+    <!-- Bottom-right: recenter -->
+    <button id="recenterBtn" title="Recenter">🎯</button>
+
+    <!-- Bottom-left: branding + trail toggle + last update -->
+    <span id="channelInfo">
+        <a href="https://www.iziot.ir/" target="_blank">iziot.ir</a>
+        <span class="caption">iziot &middot; Live Tracking</span>
+        <span id="lastUpdate" class="last-update"></span>
+        <span class="archived" id="trailToggle" onclick="toggleTrail()">🕒 24h Trail</span>
+    </span>
+</div>
+
+<!-- Fullscreen zoomable image viewer -->
+<div id="imageLightbox" class="image-lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox(event)">✕</button>
+    <img id="lightboxImg" alt="Snapshot enlarged">
 </div>
 
 <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js" integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg==" crossorigin=""></script>
@@ -38,53 +87,103 @@
     var titlebox = window.document.getElementById("titlebox");
     var latbox = window.document.getElementById("latbox");
     var lngbox = window.document.getElementById("lngbox");
+    var hascamerabox = window.document.getElementById("hascamerabox");
+    var haslocationbox = window.document.getElementById("haslocationbox");
+
+    var hasLocation = (haslocationbox.value === "true" || haslocationbox.value === "1");
 
     var startLat = parseFloat(latbox.value) || 0;
     var startLng = parseFloat(lngbox.value) || 0;
 
     //Get icon rules based on keywords found in the hub Title. Add more entries here as new device types show up.
     var iconRules = [
-        { keyword: "car",    emoji: "🚗" },
-        { keyword: "animal", emoji: "🐄" }
+        { keyword: "car",    emoji: "🚗", accent: "car" },
+        { keyword: "animal", emoji: "🐄", accent: "animal" }
     ];
     var defaultEmoji = "📍";
+    var defaultAccent = "default";
 
-    function buildIcon(title) {
+    function resolveMarkerStyle(title) {
         var lowerTitle = (title || "").toLowerCase();
-        var emoji = defaultEmoji;
 
         for (var i = 0; i < iconRules.length; i++) {
             if (lowerTitle.indexOf(iconRules[i].keyword) !== -1) {
-                emoji = iconRules[i].emoji;
-                break;
+                return iconRules[i];
             }
         }
 
+        return { emoji: defaultEmoji, accent: defaultAccent };
+    }
+
+    function buildIcon(title) {
+        var style = resolveMarkerStyle(title);
+
         return L.divIcon({
-            className: "gps-marker",
-            html: '<div class="gps-marker-badge">' + emoji + '</div><div class="gps-marker-tail"></div>',
-            iconSize: [44, 54],
-            iconAnchor: [22, 54],
-            popupAnchor: [0, -50]
+            className: "gps-marker gps-marker--" + style.accent,
+            html:
+                '<div class="gps-marker-pulse"></div>' +
+                '<div class="gps-marker-pin">' +
+                '<div class="gps-marker-inner"><span class="gps-marker-emoji">' + style.emoji + '</span></div>' +
+                '</div>',
+            iconSize: [60, 74],
+            iconAnchor: [30, 68],
+            popupAnchor: [0, -60]
         });
     }
 
     //Map init
     var map = L.map('map', {
         center: [startLat, startLng],
-        zoom: 16
+        zoom: 16,
+        zoomControl: false
     });
 
-    L.tileLayer('https://m.bzhub.social/tile/proxy.php?layer=standard&z={z}&x={x}&y={y}', {
-        maxZoom: 19,
-        attribution: 'iziot.ir'
-    }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    //Get the 4 layers the tile proxy supports
+    var tileLayers = {
+        standard: L.tileLayer('https://m.bzhub.social/tile/proxy.php?layer=standard&z={z}&x={x}&y={y}', { maxZoom: 19, attribution: 'iziot.ir' }),
+        satellite: L.tileLayer('https://m.bzhub.social/tile/proxy.php?layer=satellite&z={z}&x={x}&y={y}', { maxZoom: 19, attribution: 'iziot.ir' }),
+        terrain: L.tileLayer('https://m.bzhub.social/tile/proxy.php?layer=terrain&z={z}&x={x}&y={y}', { maxZoom: 19, attribution: 'iziot.ir' }),
+        humanitarian: L.tileLayer('https://m.bzhub.social/tile/proxy.php?layer=humanitarian&z={z}&x={x}&y={y}', { maxZoom: 19, attribution: 'iziot.ir' })
+    };
+
+    var currentLayerKey = "standard";
+    tileLayers[currentLayerKey].addTo(map);
+
+    var layerButtons = document.querySelectorAll(".layer-btn");
+    layerButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var key = btn.getAttribute("data-layer");
+            if (key === currentLayerKey) return;
+
+            map.removeLayer(tileLayers[currentLayerKey]);
+            tileLayers[key].addTo(map);
+            currentLayerKey = key;
+
+            layerButtons.forEach(function (b) { b.classList.remove("active"); });
+            btn.classList.add("active");
+        });
+    });
 
     var marker = L.marker([startLat, startLng], { icon: buildIcon(titlebox.value) }).addTo(map);
 
     var trailLine = null;
     var trailVisible = false;
     var trailLoaded = false;
+
+    // A device pushes location roughly every 60s when everything's normal (see
+    // LOCATION_SEND_INTERVAL_MS in the firmware). These thresholds decide how we
+    // label a location that *did* come back from the server but might be old -
+    // e.g. the device lost GPS fix, lost signal, or simply hasn't reported yet.
+    var LOCATION_FRESH_MS = 90 * 1000;        // within 90s -> genuinely Live
+    var LOCATION_STALE_MS = 5 * 60 * 1000;    // within 5min -> Stale (shown, but flagged)
+    // beyond that -> Lost signal (still shown, more strongly flagged)
+
+    function setStatus(state, text) {
+        document.getElementById("channelStatus").setAttribute("status", state);
+        document.querySelector("#channelStatus .status-text").innerHTML = text;
+    }
 
     //Get live location refresh
     function refreshLocation() {
@@ -99,22 +198,82 @@
                         var newLat = parseFloat(json_response.lat);
                         var newLng = parseFloat(json_response.lng);
 
+                        // First real fix arriving after the page loaded without one -
+                        // reveal the map and drop the "no location" prominence.
+                        if (!hasLocation) {
+                            hasLocation = true;
+                            document.getElementById("noLocationOverlay").style.display = "none";
+                            document.getElementById("map").style.visibility = "visible";
+                            map.invalidateSize();
+                            document.getElementById("cameraPanel").classList.remove("camera-panel--prominent");
+                        }
+
                         marker.setLatLng([newLat, newLng]);
                         map.panTo([newLat, newLng]);
 
                         latbox.value = json_response.lat;
                         lngbox.value = json_response.lng;
 
-                        document.getElementById("channelStatus").innerHTML = "Live";
-                        document.getElementById("channelStatus").setAttribute("status", "LIVE");
+                        updateStatusFromTimestamp(json_response.date_time);
+                    } else {
+                        // Backend responded fine but has no location on record at all
+                        // for this hub yet (e.g. brand new device, first fix not sent).
+                        setStatus("offline", "No location yet");
+                        document.getElementById("lastUpdate").innerHTML = "";
                     }
                 } catch (e) {
                     console.log("Error parsing location response: " + e);
+                    setStatus("offline", "Offline");
                 }
             } else if (request.readyState == 4) {
-                document.getElementById("channelStatus").innerHTML = "Offline";
-                document.getElementById("channelStatus").setAttribute("status", "offline");
+                // The request itself failed (network/server down). Keep the marker
+                // where it last was - just make clear on the status pill that this
+                // isn't a fresh read.
+                setStatus("offline", "Offline");
             }
+        }
+    }
+
+    //Get a status label (Live / Stale / Lost signal) based on how old the
+    //server-reported timestamp is, rather than just trusting a 200 response.
+    function updateStatusFromTimestamp(dateTimeStr) {
+        if (!dateTimeStr) {
+            setStatus("LIVE", "Live");
+            document.getElementById("lastUpdate").innerHTML = "";
+            return;
+        }
+
+        var then = new Date(dateTimeStr);
+        var ageMs = new Date() - then;
+
+        if (isNaN(ageMs)) {
+            // Timestamp format we couldn't parse - don't guess about freshness,
+            // just show that we did receive a location.
+            setStatus("LIVE", "Live");
+            document.getElementById("lastUpdate").innerHTML = "";
+            return;
+        }
+
+        if (ageMs <= LOCATION_FRESH_MS) {
+            setStatus("LIVE", "Live");
+        } else if (ageMs <= LOCATION_STALE_MS) {
+            setStatus("STALE", "Stale");
+        } else {
+            setStatus("STALE", "Lost signal");
+        }
+
+        document.getElementById("lastUpdate").innerHTML = "Updated " + formatTimeAgo(dateTimeStr);
+    }
+
+    function formatTimeAgo(dateTimeStr) {
+        try {
+            var then = new Date(dateTimeStr);
+            var seconds = Math.floor((new Date() - then) / 1000);
+            if (seconds < 60) return "just now";
+            if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+            return Math.floor(seconds / 3600) + "h ago";
+        } catch (e) {
+            return "";
         }
     }
 
@@ -136,11 +295,19 @@
                             map.removeLayer(trailLine);
                         }
 
-                        trailLine = L.polyline(points, { color: "#2f80ed", weight: 4, opacity: 0.7 }).addTo(map);
+                        trailLine = L.polyline(points, {
+                            className: "gps-trail-line",
+                            color: "#4facfe",
+                            weight: 5,
+                            opacity: 0.85,
+                            lineCap: "round",
+                            lineJoin: "round"
+                        }).addTo(map);
+
                         trailLoaded = true;
 
                         if (points.length > 0) {
-                            map.fitBounds(trailLine.getBounds());
+                            map.fitBounds(trailLine.getBounds(), { padding: [60, 60] });
                         }
                     }
                 } catch (e) {
@@ -168,6 +335,139 @@
             }
         }
     }
+
+    document.getElementById("recenterBtn").addEventListener("click", function () {
+        map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 16), { duration: 0.8 });
+    });
+
+    // ---------- No-location state ----------
+    // If we never got a real fix, don't pretend the (0,0) fallback means anything.
+    // Show a placeholder over the map and lean on the camera snapshot instead,
+    // since that might be the only signal we actually have from the device.
+    if (!hasLocation) {
+        document.getElementById("noLocationOverlay").style.display = "flex";
+        document.getElementById("map").style.visibility = "hidden";
+        setStatus("offline", "No location yet");
+    }
+
+    // ---------- Camera snapshot panel ----------
+    var hasCamera = (hascamerabox.value === "true" || hascamerabox.value === "1");
+
+    if (hasCamera) {
+        var cameraPanelEl = document.getElementById("cameraPanel");
+        cameraPanelEl.style.display = "block";
+
+        // No location to show alongside it, so give the snapshot more room
+        // and a more central spot instead of a small corner thumbnail.
+        if (!hasLocation) {
+            cameraPanelEl.classList.add("camera-panel--prominent");
+        }
+
+        refreshSnapshot();
+        setInterval(refreshSnapshot, 20000);
+
+        document.getElementById("cameraThumbWrap").addEventListener("click", function () {
+            var img = document.getElementById("cameraThumb");
+            if (img.src) openLightbox(img.src);
+        });
+    }
+
+    function refreshSnapshot() {
+        var newSrc = "/api/hub-snapshot/" + serialbox.value + "?t=" + Date.now();
+        var testImg = new Image();
+        testImg.onload = function () {
+            document.getElementById("cameraThumb").src = newSrc;
+            document.getElementById("cameraUpdate").innerHTML = "Updated just now";
+        };
+        testImg.onerror = function () {
+            // No snapshot available yet - keep last shown image, don't break the panel.
+        };
+        testImg.src = newSrc;
+    }
+
+    // ---------- Zoomable lightbox (wheel + drag + pinch) ----------
+    var lightboxScale = 1;
+    var lightboxTranslate = { x: 0, y: 0 };
+    var isDragging = false;
+    var dragStart = { x: 0, y: 0 };
+    var lastPinchDist = null;
+    var lightboxImgEl = document.getElementById("lightboxImg");
+
+    function openLightbox(src) {
+        lightboxImgEl.src = src;
+        lightboxScale = 1;
+        lightboxTranslate = { x: 0, y: 0 };
+        applyLightboxTransform();
+        document.getElementById("imageLightbox").classList.add("open");
+    }
+
+    function closeLightbox(e) {
+        if (e && e.target.id === "lightboxImg") return;
+        document.getElementById("imageLightbox").classList.remove("open");
+    }
+
+    function applyLightboxTransform() {
+        lightboxImgEl.style.transform =
+            "translate(" + lightboxTranslate.x + "px," + lightboxTranslate.y + "px) scale(" + lightboxScale + ")";
+    }
+
+    function getPinchDist(touches) {
+        var dx = touches[0].clientX - touches[1].clientX;
+        var dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    lightboxImgEl.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        var delta = e.deltaY < 0 ? 0.15 : -0.15;
+        lightboxScale = Math.min(Math.max(lightboxScale + delta, 1), 5);
+        applyLightboxTransform();
+    });
+
+    lightboxImgEl.addEventListener("dblclick", function () {
+        lightboxScale = lightboxScale > 1 ? 1 : 2.5;
+        lightboxTranslate = { x: 0, y: 0 };
+        applyLightboxTransform();
+    });
+
+    lightboxImgEl.addEventListener("mousedown", function (e) {
+        if (lightboxScale <= 1) return;
+        isDragging = true;
+        dragStart = { x: e.clientX - lightboxTranslate.x, y: e.clientY - lightboxTranslate.y };
+    });
+    window.addEventListener("mousemove", function (e) {
+        if (!isDragging) return;
+        lightboxTranslate = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y };
+        applyLightboxTransform();
+    });
+    window.addEventListener("mouseup", function () { isDragging = false; });
+
+    lightboxImgEl.addEventListener("touchstart", function (e) {
+        if (e.touches.length === 2) {
+            lastPinchDist = getPinchDist(e.touches);
+        } else if (e.touches.length === 1 && lightboxScale > 1) {
+            isDragging = true;
+            dragStart = { x: e.touches[0].clientX - lightboxTranslate.x, y: e.touches[0].clientY - lightboxTranslate.y };
+        }
+    });
+    lightboxImgEl.addEventListener("touchmove", function (e) {
+        e.preventDefault();
+        if (e.touches.length === 2) {
+            var dist = getPinchDist(e.touches);
+            if (lastPinchDist) {
+                lightboxScale = Math.min(Math.max(lightboxScale + (dist - lastPinchDist) * 0.01, 1), 5);
+                applyLightboxTransform();
+            }
+            lastPinchDist = dist;
+        } else if (e.touches.length === 1 && isDragging) {
+            lightboxTranslate = { x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y };
+            applyLightboxTransform();
+        }
+    }, { passive: false });
+    lightboxImgEl.addEventListener("touchend", function (e) {
+        if (e.touches.length < 2) lastPinchDist = null;
+        if (e.touches.length === 0) isDragging = false;
+    });
 
     refreshLocation();
     setInterval(refreshLocation, 15000);

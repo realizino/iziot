@@ -1,11 +1,23 @@
+:root {
+    --accent-default: #2f80ed;
+    --accent-default-light: #6ab3ff;
+    --accent-car: #ff7a45;
+    --accent-car-light: #ffb088;
+    --accent-animal: #27ae60;
+    --accent-animal-light: #6fe0a0;
+    --glass-bg: rgba(18, 20, 28, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.12);
+}
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #000;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    background: #0b0d12;
+    color: #fff;
 }
 
 .parent {
@@ -17,96 +29,474 @@ html, body {
 #map {
     width: 100%;
     height: 100%;
+    background: #10131a;
 }
 
+/* Subtle vignette so floating UI always reads well over any tile layer */
+.parent::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 900;
+    background:
+            linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 18%),
+            linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 20%);
+}
+
+/* ---------- Glass panel base ---------- */
+.glass-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Status pill (top-left) ---------- */
 #channelStatus {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    letter-spacing: 0.5px;
-}
-
-#channelStatus[status="LIVE"] {
-    color: #4cd964;
-}
-
-#channelStatus[status="offline"] {
-    color: #ff5252;
-}
-
-#channelInfo {
-    position: absolute;
-    bottom: 10px;
-    left: 12px;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
+    top: 16px;
+    left: 16px;
+    z-index: 1001;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #666;
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.6);
+}
+
+#channelStatus[status="LIVE"] .status-dot {
+    background: #4cd964;
+    animation: statusPulse 1.8s ease-out infinite;
+}
+
+#channelStatus[status="offline"] .status-dot {
+    background: #ff5252;
+}
+
+#channelStatus[status="STALE"] .status-dot {
+    background: #ffb020;
+    /* Deliberately no pulse animation here - pulsing implies "actively updating",
+       which is exactly what a stale/lost-signal reading is not. */
+}
+
+#channelStatus[status="LIVE"] .status-text {
+    color: #7CFFB2;
+}
+
+#channelStatus[status="offline"] .status-text {
+    color: #ff8a8a;
+}
+
+#channelStatus[status="STALE"] .status-text {
+    color: #ffcf7a;
+}
+
+@keyframes statusPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(76, 217, 100, 0.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(76, 217, 100, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 217, 100, 0); }
+}
+
+/* ---------- Layer switcher (top-right) ---------- */
+.layer-switcher {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.layer-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    white-space: nowrap;
+}
+
+.layer-btn .layer-icon {
+    font-size: 15px;
+}
+
+.layer-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.layer-btn.active {
+    background: linear-gradient(135deg, var(--accent-default-light), var(--accent-default));
+    color: #fff;
+    transform: translateX(-2px);
+    box-shadow: 0 4px 12px rgba(47, 128, 237, 0.45);
+}
+
+/* Collapse to icon-only on narrow screens */
+@media (max-width: 520px) {
+    .layer-btn .layer-label { display: none; }
+    .layer-switcher { padding: 6px; }
+    .layer-btn { padding: 8px; justify-content: center; }
+}
+
+/* ---------- Recenter button (bottom-right, above zoom control) ---------- */
+#recenterBtn {
+    position: absolute;
+    right: 16px;
+    bottom: 96px;
+    z-index: 1000;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+#recenterBtn:hover {
+    background: rgba(47, 128, 237, 0.35);
+    transform: scale(1.06);
+}
+
+#recenterBtn:active {
+    transform: scale(0.94);
+}
+
+/* ---------- Bottom-left info bar ---------- */
+#channelInfo {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    font-size: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 #channelInfo a {
     color: #fff;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-default-light), var(--accent-default));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 #channelInfo .caption {
-    opacity: 0.75;
+    opacity: 0.65;
+}
+
+.last-update {
+    opacity: 0.55;
+    font-size: 11px;
 }
 
 #trailToggle {
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.12);
-    transition: background 0.2s ease;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.10);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 #trailToggle:hover {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.20);
 }
 
 #trailToggle.active {
-    background: #2f80ed;
+    background: linear-gradient(135deg, var(--accent-default-light), var(--accent-default));
+    box-shadow: 0 4px 12px rgba(47, 128, 237, 0.45);
 }
 
-/* GPS marker (emoji badge with a pin tail, gives a simple 3D-pin feel without shipping image assets) */
+@media (max-width: 520px) {
+    #channelInfo { flex-wrap: wrap; max-width: calc(100vw - 32px); }
+}
+
+/* ---------- GPS marker: pulsing teardrop pin ---------- */
 .gps-marker {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end;
     pointer-events: none;
 }
 
-.gps-marker-badge {
-    width: 40px;
-    height: 40px;
+.gps-marker-pulse {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: linear-gradient(145deg, #ffffff, #d9d9d9);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    transform: translateX(-50%);
+    background: radial-gradient(circle, var(--marker-fade, rgba(47,128,237,0.45)) 0%, transparent 70%);
+    animation: gpsPulse 2.4s ease-out infinite;
+}
+
+@keyframes gpsPulse {
+    0%   { transform: translateX(-50%) scale(0.5); opacity: 0.9; }
+    100% { transform: translateX(-50%) scale(2.4); opacity: 0; }
+}
+
+.gps-marker-pin {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid rgba(255, 255, 255, 0.92);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(0, 0, 0, 0.18);
+    background: linear-gradient(135deg, var(--marker-light, #6ab3ff), var(--marker-color, #2f80ed));
+    animation: gpsDrop 0.55s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.gps-marker-inner {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    border: 2px solid #2f80ed;
+    transform: rotate(45deg);
 }
 
-.gps-marker-tail {
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 10px solid #2f80ed;
-    margin-top: -2px;
+.gps-marker-emoji {
+    font-size: 19px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+@keyframes gpsDrop {
+    0%   { transform: rotate(-45deg) translateY(-28px) scale(0.3); opacity: 0; }
+    70%  { transform: rotate(-45deg) translateY(3px) scale(1.05); opacity: 1; }
+    100% { transform: rotate(-45deg) translateY(0) scale(1); opacity: 1; }
+}
+
+.gps-marker--default { --marker-color: var(--accent-default); --marker-light: var(--accent-default-light); --marker-fade: rgba(47, 128, 237, 0.45); }
+.gps-marker--car      { --marker-color: var(--accent-car);     --marker-light: var(--accent-car-light);     --marker-fade: rgba(255, 122, 69, 0.45); }
+.gps-marker--animal   { --marker-color: var(--accent-animal);  --marker-light: var(--accent-animal-light);  --marker-fade: rgba(39, 174, 96, 0.45); }
+
+/* ---------- Trail line glow ---------- */
+.gps-trail-line {
+    filter: drop-shadow(0 0 6px rgba(79, 172, 254, 0.65));
+}
+
+/* ---------- Leaflet control restyle (zoom buttons) ---------- */
+.leaflet-control-zoom {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+.leaflet-control-zoom a {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: #fff !important;
+    border: none !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: rgba(47, 128, 237, 0.4) !important;
+}
+
+.leaflet-bar {
+    border: none !important;
+}
+
+.leaflet-control-attribution {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.leaflet-control-attribution a {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ---------- Camera snapshot panel (top-left, below status pill) ---------- */
+.camera-panel {
+    position: absolute;
+    top: 62px;
+    left: 16px;
+    z-index: 1000;
+    width: 180px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.camera-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.camera-thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    cursor: zoom-in;
+    background: #10131a;
+}
+
+.camera-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-zoom-hint {
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.camera-thumb-wrap:hover .camera-zoom-hint { opacity: 1; }
+
+@media (max-width: 520px) {
+    .camera-panel { width: 130px; top: 58px; }
+}
+
+/* ---------- No-location placeholder (replaces a meaningless 0,0 map view) ---------- */
+.no-location-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #10131a;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.no-location-icon {
+    font-size: 34px;
+    opacity: 0.6;
+}
+
+/* ---------- Prominent camera panel (used when there's no location to show) ---------- */
+.camera-panel--prominent {
+    top: 62px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(320px, calc(100vw - 32px));
+}
+
+.camera-panel--prominent .camera-panel-header {
+    font-size: 13px;
+    padding: 10px 12px;
+}
+
+.camera-panel--prominent .camera-thumb-wrap {
+    aspect-ratio: 4 / 3;
+}
+
+@media (max-width: 520px) {
+    .camera-panel--prominent { width: calc(100vw - 32px); }
+}
+
+/* ---------- Fullscreen zoomable lightbox ---------- */
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.88);
+    touch-action: none;
+}
+
+.image-lightbox.open { display: flex; }
+
+.image-lightbox img {
+    max-width: 92vw;
+    max-height: 92vh;
+    cursor: grab;
+    transition: transform 0.05s linear;
+    touch-action: none;
+    user-select: none;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 5001;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
 }

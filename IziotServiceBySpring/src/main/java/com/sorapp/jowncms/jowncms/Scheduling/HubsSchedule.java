@@ -4,11 +4,13 @@ import com.sorapp.jowncms.jowncms.Function.Requets.Requests;
 import com.sorapp.jowncms.jowncms.Models.Database.airquality_tbl;
 import com.sorapp.jowncms.jowncms.Models.Database.hub_tbl;
 import com.sorapp.jowncms.jowncms.Models.Database.images_tbl;
+import com.sorapp.jowncms.jowncms.Models.Database.location_tbl;
 import com.sorapp.jowncms.jowncms.Models.Database.temperatures_tbl;
 import com.sorapp.jowncms.jowncms.Models.Hub.FailModel;
 import com.sorapp.jowncms.jowncms.Service.AirQuality.AirQuality_Service;
 import com.sorapp.jowncms.jowncms.Service.Hubs.Hub_Service;
 import com.sorapp.jowncms.jowncms.Service.Images.Images_Service;
+import com.sorapp.jowncms.jowncms.Service.Location.Location_Service;
 import com.sorapp.jowncms.jowncms.Service.Tempreture.Tempreture_Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,12 +38,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class HubsSchedule 
+public class HubsSchedule
 {
 
     //Global variables
     List<hub_tbl> RamHubs;
-    
+
     boolean is_running = false;
 
     @Autowired
@@ -55,6 +57,9 @@ public class HubsSchedule
 
     @Autowired
     Images_Service Images;
+
+    @Autowired
+    Location_Service Location;
 
     public static ArrayList<FailModel> HubFailMatrix=new ArrayList<>();
 
@@ -139,6 +144,14 @@ public class HubsSchedule
                                 String res_air_quality = Requests.StringRequest(HubAddress + "/air_quality");
                                 AddNewAirQuality(RamHubs.get(index).getId(), res_air_quality);
                                 System.out.println((res_air_quality.equals("-") || res_air_quality.equals("")) ? "Air quality is can not resived" : "Air quality is resived");
+                            }
+
+
+                            //Get location (Neo M6 GPS)
+                            if (RamHubs.get(index).getAttribute().contains("Neo M6")) {
+                                String res_location = Requests.StringRequest(HubAddress + "/location");
+                                AddNewLocation(RamHubs.get(index).getId(), res_location, RamHubs.get(index).getTimezone());
+                                System.out.println((res_location.equals("-") || res_location.equals("") || res_location.equals("ERROR")) ? "Location is can not resived" : "Location is resived");
                             }
 
 
@@ -510,6 +523,38 @@ public class HubsSchedule
             AirQuality.AddValue(air_q);
         }
     }
+
+
+    //Get add location to db (GPS: lat;lng, e.g. "35.7219;51.3347")
+    private void AddNewLocation(int hub_id,String LocationValue,String HubTimeZone)
+    {
+        if(!LocationValue.trim().equals("") && !LocationValue.equals("ERROR"))
+        {
+            String[] parts = LocationValue.split(";");
+
+            if(parts.length < 2)
+            {
+                return;
+            }
+
+            String lat = parts[0].trim();
+            String lng = parts[1].trim();
+
+            ZonedDateTime currentDateTime = ZonedDateTime.now(ZoneId.of(HubTimeZone));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
+            String dateTime = currentDateTime.format(formatter);
+
+            location_tbl n_loc = new location_tbl();
+            n_loc.setHub_id(HubService.GetHub(hub_id));
+            n_loc.setDate_time(dateTime);
+            n_loc.setLat(lat);
+            n_loc.setLng(lng);
+            n_loc.setAttribute("-");
+
+            Location.AddLocation(n_loc);
+        }
+    }
+
 
     //Get add image to db
     private void AddNewSnapshot(int hub_id,String address,String resolution,String lat,String lng)

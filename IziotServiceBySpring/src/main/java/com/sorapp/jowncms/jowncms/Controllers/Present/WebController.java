@@ -4,18 +4,29 @@ import com.sorapp.jowncms.jowncms.Models.Database.hub_tbl;
 import com.sorapp.jowncms.jowncms.Models.Database.location_tbl;
 import com.sorapp.jowncms.jowncms.SMTP.Mail;
 import com.sorapp.jowncms.jowncms.Service.Hubs.Hub_Service;
+import com.sorapp.jowncms.jowncms.Service.Images.Images_Service;
 import com.sorapp.jowncms.jowncms.Service.Location.Location_Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import reactor.core.publisher.Flux;
 
-import java.time.Duration;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import org.springframework.core.io.Resource;
 
 @Controller
 public class WebController
@@ -29,6 +40,10 @@ public class WebController
 
     @Autowired
     Mail mail;
+
+    @Autowired
+    Images_Service ImageService;
+
 
 
 
@@ -70,19 +85,39 @@ public class WebController
                     result.addObject("hub_serial", hub.getSerial_number());
                     result.addObject("hub_title", hub.getTitle());
 
+                    // This device class (Neo M6 GPS tracker) is always ESP32-CAM based,
+                    // so the camera snapshot panel is always shown for it.
+                    // If some Neo M6 units ship without a camera, switch this to an
+                    // actual attribute/model check instead.
+                    result.addObject("hub_has_camera", true);
+
                     //Get last known location for the initial render
+                    boolean hasLocation;
                     try
                     {
                         location_tbl last_loc = LocationService.GetLocationBySerial(hub_serial);
                         result.addObject("lat", last_loc.getLat());
                         result.addObject("lng", last_loc.getLng());
+                        hasLocation = true;
                     }
                     catch (Exception e)
                     {
                         //No location recorded yet, fall back to the hub's registered lat/lng
-                        result.addObject("lat", hub.getLat());
-                        result.addObject("lng", hub.getLng());
+                        //if it has one, otherwise there's genuinely nothing to show on the map.
+                        if (hub.getLat() != null && hub.getLng() != null)
+                        {
+                            result.addObject("lat", hub.getLat());
+                            result.addObject("lng", hub.getLng());
+                            hasLocation = true;
+                        }
+                        else
+                        {
+                            result.addObject("lat", 0);
+                            result.addObject("lng", 0);
+                            hasLocation = false;
+                        }
                     }
+                    result.addObject("hub_has_location", hasLocation);
                     return result;
                 }
                 //Get GPS equipped hub (Neo M6 / SIM800C) end
@@ -159,6 +194,22 @@ public class WebController
         {
             return "{\"status\":\"error\",\"points\":[]}";
         }
+    }
+
+
+    //Get the most recent camera snapshot for a hub, served as raw JPEG bytes
+    //(used by Web/maps.html for the camera panel + zoomable lightbox)
+    @GetMapping("/api/hub-snapshot/{serial}")
+    public ResponseEntity<Resource> GetHubSnapshot(@PathVariable String serial) throws Exception
+    {
+        File file = new File(ImageService.GetLastImageBySerialNumber(serial).getFile_address());
+
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file.getAbsoluteFile()));
+
+        return ResponseEntity.ok()
+                .contentLength(file.length())
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(resource);
     }
 
 }

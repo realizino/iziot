@@ -2,6 +2,7 @@ package com.sorapp.jowncms.jowncms.Scheduling;
 
 import com.sorapp.jowncms.jowncms.Service.AirQuality.AirQuality_Service;
 import com.sorapp.jowncms.jowncms.Service.Images.Images_Service;
+import com.sorapp.jowncms.jowncms.Service.Location.Location_Service;
 import com.sorapp.jowncms.jowncms.Service.Tempreture.Tempreture_Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,6 +22,9 @@ public class ArchiveSchedule
 
     @Autowired
     AirQuality_Service airqualityService;
+
+    @Autowired
+    Location_Service locationService;
 
     //@Scheduled(cron = "0 0 10 * * ?")
     //Every week in monday
@@ -67,6 +71,22 @@ public class ArchiveSchedule
                 try
                 {
                     imagesService.ArchiveImages();
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+        }).start();
+
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try
+                {
+                    locationService.Archiving();
                 }
                 catch (Exception e)
                 {
