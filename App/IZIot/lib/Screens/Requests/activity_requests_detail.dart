@@ -208,15 +208,15 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B).withOpacity(0.12),
+                color: const Color(0xFF61a896).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF59E0B)),
+                  const Icon(Icons.star_rounded, size: 14, color: Color(0xFF61a896)),
                   const SizedBox(width: 2),
-                  Text(rating.toString(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFF59E0B))),
+                  Text(rating.toString(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF61a896))),
                 ],
               ),
             ),
@@ -250,7 +250,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
                       onPressed: () => setLocal(() => selectedRate = star),
                       icon: Icon(
                         star <= selectedRate ? Icons.star_rounded : Icons.star_outline_rounded,
-                        color: const Color(0xFFF59E0B),
+                        color: const Color(0xFF61a896),
                         size: 32,
                       ),
                     );
@@ -320,7 +320,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
       case "open":
         return const Color(0xFF22C55E);
       case "assigned":
-        return const Color(0xFFF59E0B);
+        return const Color(0xFF61a896);
       case "closed":
         return const Color(0xFF9CA3AF);
       default:
@@ -445,7 +445,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
                                   ),
                                   _InfoRowData(
                                     icon: Icons.calendar_today_rounded,
-                                    color: const Color(0xFFF59E0B),
+                                    color: const Color(0xFF61a896),
                                     label: appLocal.expire,
                                     value: _request.expiresAt != null ? _formatDate(_request.expiresAt!) : appLocal.no_expiry,
                                   ),
@@ -595,7 +595,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
       secondary = _BarButton(
         label: appLocal.cancel_assignment,
         icon: Icons.undo_rounded,
-        color: const Color(0xFFF59E0B),
+        color: const Color(0xFF61a896),
         outlined: true,
         loading: _loadingAction == "cancel",
         disabled: _isBusy,
@@ -605,7 +605,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
       primary = _BarButton(
         label: appLocal.cancel_assignment,
         icon: Icons.undo_rounded,
-        color: const Color(0xFFF59E0B),
+        color: const Color(0xFF61a896),
         loading: _loadingAction == "cancel",
         disabled: _isBusy,
         onTap: _cancelAssignment,
@@ -614,7 +614,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
       primary = _BarButton(
         label: appLocal.rate_host,
         icon: Icons.star_rounded,
-        color: const Color(0xFFF59E0B),
+        color: const Color(0xFF61a896),
         loading: _loadingAction == "rate",
         disabled: _isBusy,
         onTap: () => _rate(asHost: false),
@@ -623,7 +623,7 @@ class _activity_requests_detail_State extends State<activity_requests_detail>
       primary = _BarButton(
         label: appLocal.rate_client,
         icon: Icons.star_rounded,
-        color: const Color(0xFFF59E0B),
+        color: const Color(0xFF61a896),
         loading: _loadingAction == "rate",
         disabled: _isBusy,
         onTap: () => _rate(asHost: true),

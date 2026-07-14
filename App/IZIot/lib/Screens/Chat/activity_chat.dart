@@ -1114,7 +1114,7 @@ class _activity_chat_state extends State<activity_chat> {
             width: 3,
             height: 36,
             decoration: BoxDecoration(
-              color: Colors.orange,
+              color: Color(0XFF61a896),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1129,7 +1129,7 @@ class _activity_chat_state extends State<activity_chat> {
                   style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.orange),
+                      color: Color(0XFF61a896)),
                 ),
                 const SizedBox(height: 2),
                 Text(

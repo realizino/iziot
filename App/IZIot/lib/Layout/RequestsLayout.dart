@@ -313,7 +313,7 @@ class RequestsLayout_State extends State<RequestsLayout> {
       case "open":
         return const Color(0xFF22C55E);
       case "assigned":
-        return const Color(0xFFF59E0B);
+        return const Color(0xF61a896);
       case "closed":
         return const Color(0xFF9CA3AF);
       default:

@@ -1,49 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-  -->
+
   <meta name="google-signin-client_id" content="250732932207-625mspf9laratikbvf5rr9dlp7pcd7bq.apps.googleusercontent.com">
+
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
+
   <!-- Primary SEO meta tags -->
-  <title>BzHub - Digital Business Cards & Networking</title>
-  <meta name="description" content="BzHub is a multilingual business networking platform. Create your digital business card, connect, and grow your network.">
+  <title>Iziot | IoT Device Management Platform</title>
+
+  <meta name="description" content="Iziot is an IoT device management platform for monitoring, controlling, and managing smart connected devices remotely.">
+
+  <meta name="keywords" content="
+    Iziot,
+    IoT,
+    Internet of Things,
+    IoT Platform,
+    Smart Devices,
+    Device Management,
+    Remote Device Control,
+    IoT Monitoring
+  ">
+
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://izior.ir/">
-  <meta property="og:title" content="BzHub - Digital Business Cards & Networking">
-  <meta property="og:description" content="Create your digital business card, connect, and grow your network with BzHub.">
-  <meta property="og:image" content="https://izior.ir/icons/og-image.png">
+
+  <meta property="og:url" content="https://iziot.ir/">
+
+  <meta property="og:title" content="Iziot | IoT Device Management Platform">
+
+  <meta property="og:description" content="Connect, monitor, and control your IoT devices with Iziot. A simple and secure platform for managing smart connected devices.">
+
+  <meta property="og:image" content="https://iziot.ir/icons/og-image.png">
+
   <meta property="og:image:width" content="1200">
+
   <meta property="og:image:height" content="630">
-  <meta property="og:site_name" content="BzHub">
+
+  <meta property="og:site_name" content="Iziot">
+
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://izior.ir/">
-  <meta name="twitter:title" content="BzHub - Digital Business Cards & Networking">
-  <meta name="twitter:description" content="Create your digital business card, connect, and grow your network with BzHub.">
-  <meta name="twitter:image" content="https://izior.ir/icons/og-image.png">
 
-  <!-- iOS meta tags & icons -->
+  <meta name="twitter:url" content="https://iziot.ir/">
+
+  <meta name="twitter:title" content="Iziot | IoT Device Management Platform">
+
+  <meta name="twitter:description" content="Manage and control your IoT devices remotely with Iziot.">
+
+  <meta name="twitter:image" content="https://iziot.ir/icons/og-image.png">
+
+
+  <!-- Mobile App -->
   <meta name="mobile-web-app-capable" content="yes">
+
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="BzHub">
+
+  <meta name="apple-mobile-web-app-title" content="Iziot">
+
+
   <meta http-equiv="Content-Security-Policy" content="img-src * data: blob:;">
+
+
+  <!-- Icons -->
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png">
 
   <link rel="manifest" href="manifest.json">
+
 
   <style>
     html, body {
@@ -51,6 +83,7 @@
       margin: 0;
       background: #ffffff;
     }
+
     #loading {
       position: fixed;
       inset: 0;
@@ -61,46 +94,59 @@
       z-index: 9999;
       transition: opacity 0.3s ease;
     }
+
     #loading.hide {
       opacity: 0;
       pointer-events: none;
     }
+
     .spinner {
       width: 48px;
       height: 48px;
       border: 5px solid #f0f0f0;
-      border-top-color: #D7561C;
+      border-top-color: #61a896;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
+
 </head>
+
+
 <body>
+
 <div id="loading">
   <div class="spinner"></div>
 </div>
 
-<!--
-  You can customize the "flutter_bootstrap.js" script.
-  This is useful to provide a custom configuration to the Flutter loader
-  or to give the user feedback during the initialization process.
 
-  For more details:
-  * https://docs.flutter.dev/platform-integration/web/initialization
--->
 <script src="flutter_bootstrap.js" async></script>
+
 
 <script>
   window.addEventListener('flutter-first-frame', function () {
+
     var loading = document.getElementById('loading');
+
     if (loading) {
+
       loading.classList.add('hide');
-      setTimeout(function () { loading.remove(); }, 300);
+
+      setTimeout(function () {
+        loading.remove();
+      }, 300);
+
     }
+
   });
 </script>
+
+
 </body>
 </html>

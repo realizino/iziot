@@ -37,7 +37,7 @@ class activity_qr_scanner_state extends State<activity_qr_scanner>
     return lang == "fa" || lang == "ar";
   }
 
-  static const Color _accent = Color(0xFFFF6B2B); // BzHub orange
+  static const Color _accent = Color(0xFF61a896); // BzHub orange
 
   @override
   void initState() {
@@ -316,7 +316,7 @@ class _ScanFrame extends StatelessWidget {
   const _ScanFrame({required this.scanProgress});
 
   static const double _size = 240;
-  static const Color _accent = Color(0xFFFF6B2B);
+  static const Color _accent = Color(0xFF61a896);
 
   @override
   Widget build(BuildContext context) {

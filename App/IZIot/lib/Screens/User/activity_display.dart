@@ -770,7 +770,7 @@ class activity_display_state extends State<activity_display> {
                 _DialogBtn(
                   icon: Icons.flag_outlined,
                   label: AppLocalizations.of(context)!.report,
-                  color: const Color(0xFFF59E0B),
+                  color: const Color(0xFF61a896),
                   onTap: () {
                     Navigator.pop(context);
                     _showReportDialog(context, username);

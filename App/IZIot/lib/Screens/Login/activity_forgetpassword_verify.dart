@@ -14,7 +14,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../l10n/app_localizations.dart';
 
 // ─── Brand colors ────────────────────────────────────────────────────────────
-const _primary      = Color(0xFFD7561C);
+const _primary      = Color(0xFF61a896);
 const _primaryMuted = Color(0xFFEECDBC);
 const _textMain     = Color(0xFF1C1C1E);
 const _textSub      = Color(0xFF9A9A9A);
