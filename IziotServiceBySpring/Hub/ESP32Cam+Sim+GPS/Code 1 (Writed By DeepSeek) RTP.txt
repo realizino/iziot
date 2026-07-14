@@ -1,0 +1,1255 @@
+# =============================================================
+#  iziot Camera Firmware  (ESP32-CAM + NEO-6M GPS + SIM800L)
+#  --------------------------------------------------------------
+#  Brand: iziot
+#
+#  Features:
+#   - WiFi hotspot setup (SSID: iziotHub)
+#   - WiFi or SIM800L (GPRS) internet
+#   - APN picker with 3 default Iranian carriers
+#   - NEO-6M GPS location reading (UART1: pins 12 & 13)
+#   - SMS "Location" reply with LAT-LNG
+#   - Continuous location upload after each image (if GPS has fix)
+#   - Custom RTP image protocol (port 9085)
+#   - Camera init without extra parameters (compatible)
+# =============================================================
+
+import network
+import socket
+import time
+import machine
+import ujson
+import ubinascii
+import sys
+import struct
+import gc
+from machine import Pin, UART, reset
+
+try:
+    import camera
+except ImportError:
+    print("Camera module not found. Please use a MicroPython firmware with camera support.")
+    sys.exit(1)
+
+try:
+    import ussl
+except ImportError:
+    print("ussl module not found. SSL/TLS will not be available.")
+    ussl = None
+
+# ---------------- Pin Definitions ----------------
+LED_PIN = 4
+RESET_PIN = 0
+
+# GPS on UART1 (pins 12 = RX, 13 = TX) – no conflict with REPL or camera
+GPS_UART_ID = 1
+GPS_TX_PIN = 13    # TX (ESP32 sends to GPS RX)
+GPS_RX_PIN = 12    # RX (ESP32 receives from GPS TX)
+GPS_BAUD = 9600
+
+# SIM800L on UART2 (pins 15 = TX, 14 = RX)
+SIM_UART_ID = 2
+SIM_TX_PIN = 15
+SIM_RX_PIN = 14
+SIM_BAUD = 9600
+
+# Intervals
+LOCATION_SEND_INTERVAL_MS = 10000
+SMS_CHECK_INTERVAL_MS = 10000
+
+DEFAULT_APNS = [
+    {"name": "Hamrah-e Aval (MCI)", "apn": "mcinet"},
+    {"name": "Irancell",            "apn": "mtnirancell"},
+    {"name": "RighTel",             "apn": "rightel"},
+]
+
+# =============================================================
+#  NEO-6M GPS (UART1)
+# =============================================================
+class NEO6MGPS:
+    def __init__(self, uart_id=GPS_UART_ID, tx=GPS_TX_PIN, rx=GPS_RX_PIN, baud=GPS_BAUD):
+        try:
+            self.uart = UART(uart_id, baudrate=baud, tx=tx, rx=rx)
+        except Exception as e:
+            print("GPS UART init failed:", e)
+            self.uart = None
+        self.lat = None
+        self.lng = None
+
+    def _nmea_to_decimal(self, raw, direction):
+        try:
+            if not raw:
+                return None
+            dot = raw.find('.')
+            deg_len = dot - 2
+            degrees = float(raw[0:deg_len])
+            minutes = float(raw[deg_len:])
+            decimal = degrees + minutes / 60.0
+            if direction in ('S', 'W'):
+                decimal = -decimal
+            return decimal
+        except Exception:
+            return None
+
+    def _parse_sentence(self, line):
+        try:
+            if not (line.startswith('$GPRMC') or line.startswith('$GNRMC')):
+                return False
+            parts = line.split(',')
+            if len(parts) < 7:
+                return False
+            status = parts[2]
+            if status != 'A':
+                return False
+            lat = self._nmea_to_decimal(parts[3], parts[4])
+            lng = self._nmea_to_decimal(parts[5], parts[6])
+            if lat is None or lng is None:
+                return False
+            self.lat = lat
+            self.lng = lng
+            return True
+        except Exception as e:
+            print("GPS parse error:", e)
+            return False
+
+    def read_fix(self, timeout_ms=10000):
+        if not self.uart:
+            return None, None
+        start = time.ticks_ms()
+        buf = b''
+        while time.ticks_diff(time.ticks_ms(), start) < timeout_ms:
+            if self.uart.any():
+                buf += self.uart.read(self.uart.any())
+                while b'\n' in buf:
+                    line, buf = buf.split(b'\n', 1)
+                    try:
+                        line = line.decode('utf-8').strip()
+                    except Exception:
+                        continue
+                    if self._parse_sentence(line):
+                        return self.lat, self.lng
+            else:
+                time.sleep_ms(50)
+        return None, None
+
+# =============================================================
+#  SIM800L (UART2) – unchanged
+# =============================================================
+class SIM800L:
+    def __init__(self, uart_id=SIM_UART_ID, tx=SIM_TX_PIN, rx=SIM_RX_PIN, baud=SIM_BAUD):
+        try:
+            self.uart = UART(uart_id, baudrate=baud, tx=tx, rx=rx)
+        except Exception as e:
+            print("SIM800L UART init failed:", e)
+            self.uart = None
+        self.gprs_connected = False
+
+    def _read_response(self, timeout_ms=3000):
+        if not self.uart:
+            return ''
+        start = time.ticks_ms()
+        resp = b''
+        while time.ticks_diff(time.ticks_ms(), start) < timeout_ms:
+            if self.uart.any():
+                resp += self.uart.read(self.uart.any())
+            else:
+                time.sleep_ms(20)
+        try:
+            return resp.decode('utf-8', 'ignore')
+        except Exception:
+            return ''
+
+    def send_at(self, cmd, timeout_ms=3000):
+        if not self.uart:
+            return ''
+        try:
+            self.uart.write((cmd + '\r\n').encode('utf-8'))
+        except Exception as e:
+            print("SIM800L write error:", e)
+            return ''
+        resp = self._read_response(timeout_ms)
+        print("AT>", cmd, " => ", resp.strip())
+        return resp
+
+    def is_present(self):
+        resp = self.send_at('AT', 1000)
+        return 'OK' in resp
+
+    def init_module(self):
+        self.send_at('ATE0', 1000)
+        self.send_at('AT+CMGF=1', 1000)
+        self.send_at('AT+CNMI=1,2,0,0,0', 1000)
+        return self.is_present()
+
+    def connect_gprs(self, apn, user='', pwd=''):
+        self.send_at('AT+CIPSHUT', 3000)
+        self.send_at('AT+CGATT=1', 3000)
+        self.send_at('AT+SAPBR=3,1,"CONTYPE","GPRS"', 1000)
+        self.send_at('AT+SAPBR=3,1,"APN","{}"'.format(apn), 1000)
+        if user:
+            self.send_at('AT+SAPBR=3,1,"USER","{}"'.format(user), 1000)
+        if pwd:
+            self.send_at('AT+SAPBR=3,1,"PWD","{}"'.format(pwd), 1000)
+        self.send_at('AT+SAPBR=1,1', 5000)
+        check = self.send_at('AT+SAPBR=2,1', 3000)
+        self.gprs_connected = '+SAPBR: 1,1' in check
+        print("GPRS connected:", self.gprs_connected)
+        return self.gprs_connected
+
+    def http_post_query(self, base_url, path, query_params, headers=None):
+        if not self.gprs_connected:
+            print("GPRS not connected, aborting HTTP POST")
+            return None
+        full_url = base_url.rstrip('/') + path
+        if query_params:
+            qs = '&'.join('{}={}'.format(k, v) for k, v in query_params.items())
+            full_url += '?' + qs
+        self.send_at('AT+HTTPTERM', 1000)
+        self.send_at('AT+HTTPINIT', 2000)
+        self.send_at('AT+HTTPPARA="CID",1', 1000)
+        self.send_at('AT+HTTPPARA="URL","{}"'.format(full_url), 2000)
+        if headers:
+            header_str = ''
+            for k, v in headers.items():
+                header_str += '{}: {}\r\n'.format(k, v)
+            self.send_at('AT+HTTPPARA="USERDATA","{}"'.format(header_str), 1000)
+        self.send_at('AT+HTTPACTION=1', 8000)
+        read_resp = self.send_at('AT+HTTPREAD', 3000)
+        self.send_at('AT+HTTPTERM', 1000)
+        return read_resp
+
+    def check_incoming_sms(self):
+        resp = self.send_at('AT+CMGL="REC UNREAD"', 3000)
+        messages = []
+        lines = resp.split('\r\n')
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            if line.startswith('+CMGL:'):
+                try:
+                    meta = line.split(':', 1)[1].split(',')
+                    index = meta[0].strip()
+                    sender = meta[2].strip().replace('"', '')
+                    text = lines[i + 1].strip() if i + 1 < len(lines) else ''
+                    messages.append((index, sender, text))
+                    i += 1
+                except Exception as e:
+                    print("SMS parse error:", e)
+            i += 1
+        return messages
+
+    def send_sms(self, number, text):
+        if not self.uart:
+            return False
+        try:
+            self.uart.write('AT+CMGS="{}"\r\n'.format(number).encode('utf-8'))
+            time.sleep_ms(500)
+            self.uart.write(text.encode('utf-8'))
+            self.uart.write(bytes([0x1A]))
+            resp = self._read_response(5000)
+            print("SMS send response:", resp)
+            return 'OK' in resp
+        except Exception as e:
+            print("SMS send error:", e)
+            return False
+
+    def delete_sms(self, index):
+        self.send_at('AT+CMGD={}'.format(index), 1000)
+
+    def connect_ppp(self):
+        try:
+            ppp = network.PPP(self.uart)
+            ppp.active(True)
+            ppp.connect()
+            timeout = 0
+            while not ppp.isconnected() and timeout < 20:
+                time.sleep(1)
+                timeout += 1
+            if ppp.isconnected():
+                print("PPP connected via SIM800L, IP:", ppp.ifconfig()[0])
+                return True
+            print("PPP connection over SIM800L timed out")
+            return False
+        except Exception as e:
+            print("PPP not supported on this firmware:", e)
+            return False
+
+# =============================================================
+#  Main device class
+# =============================================================
+class IziotCamDevice:
+    def __init__(self):
+        self.wifi_config_file = 'wifi_config.json'
+        self.ap_ssid = 'iziotHub'
+        self.ap_password = '12345678'
+        self.resolution = '800x600'
+        self.server_url = None
+        self.token = None
+        self.has_thermometer = False
+        self.has_rotate = False
+        self.camera_initialized = False
+        self.led_pin = None
+        self.reset_pin = None
+
+        self.connection_type = 'wifi'
+        self.ssid = None
+        self.password = None
+        self.apn = None
+        self.apn_user = ''
+        self.apn_pass = ''
+
+        self.gps = None
+        self.sim800 = None
+        self.last_lat = None
+        self.last_lng = None
+        self.last_location_send = 0
+        self.last_sms_check = 0
+
+        self.resolution_fallback_list = ["1024 768", "800 600", "640 480"]
+
+    # ---------------------------------------------------------
+    #  Config persistence (unchanged)
+    # ---------------------------------------------------------
+    def load_wifi_config(self):
+        try:
+            with open(self.wifi_config_file, 'r') as f:
+                content = f.read()
+                config = ujson.loads(content)
+                ssid = config.get('ssid')
+                password = config.get('password')
+                token = config.get('token')
+                connection_type = config.get('connection_type', 'wifi')
+                apn = config.get('apn', '')
+                apn_user = config.get('apn_user', '')
+                apn_pass = config.get('apn_pass', '')
+                return ssid, password, token, connection_type, apn, apn_user, apn_pass
+        except Exception as e:
+            print("Error loading config:", str(e))
+            return None, None, None, 'wifi', '', '', ''
+
+    def validate_token(self, token):
+        try:
+            if not token or len(token) < 10:
+                print("Token too short")
+                return False
+            decoded = ubinascii.a2b_base64(token).decode('utf-8')
+            json_data = ujson.loads(decoded)
+            if 'url' not in json_data:
+                print("Token missing required URL field")
+                return False
+            print("Token validation successful")
+            return True
+        except Exception as e:
+            print("Token validation failed:", str(e))
+            return False
+
+    def save_wifi_config(self, ssid, password, token, connection_type='wifi',
+                          apn='', apn_user='', apn_pass=''):
+        try:
+            config = {
+                'ssid': ssid,
+                'password': password,
+                'token': token,
+                'connection_type': connection_type,
+                'apn': apn,
+                'apn_user': apn_user,
+                'apn_pass': apn_pass,
+            }
+            json_str = ujson.dumps(config)
+            try:
+                import uos
+                try:
+                    uos.remove(self.wifi_config_file)
+                except Exception:
+                    pass
+                with open(self.wifi_config_file, 'w') as f:
+                    f.write(json_str)
+                    f.flush()
+                with open(self.wifi_config_file, 'r') as f:
+                    saved_content = f.read()
+                saved_config = ujson.loads(saved_content)
+                saved_token = saved_config.get('token', '')
+                if saved_token == token:
+                    print("Config saved and verified successfully")
+                    return True
+                else:
+                    print("Token verification failed")
+                    return False
+            except Exception as e:
+                print("File operations error:", str(e))
+                return False
+        except Exception as e:
+            print("Error saving config:", str(e))
+            return False
+
+    def clear_config_and_reset(self):
+        try:
+            import uos
+            uos.remove(self.wifi_config_file)
+            print("Config file cleared")
+        except Exception:
+            print("Config file not found or already cleared")
+        print("Resetting to hotspot mode...")
+        time.sleep(2)
+        machine.reset()
+
+    # ---------------------------------------------------------
+    #  Hotspot + web server (unchanged)
+    # ---------------------------------------------------------
+    def create_hotspot(self):
+        ap = network.WLAN(network.AP_IF)
+        ap.active(True)
+        ap.config(essid=self.ap_ssid, password=self.ap_password)
+        print("Hotspot created: " + self.ap_ssid)
+        print("IP: " + ap.ifconfig()[0])
+        return ap.ifconfig()[0]
+
+    def _build_apn_options_html(self):
+        options = ''
+        for entry in DEFAULT_APNS:
+            options += '<option value="{apn}">{name} ({apn})</option>'.format(
+                apn=entry['apn'], name=entry['name']
+            )
+        options += '<option value="custom">Custom (enter manually)</option>'
+        return options
+
+    def setup_web_server(self, ip):
+        apn_options_html = self._build_apn_options_html()
+        html = """<!DOCTYPE html>
+<html dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>iziot Camera Setup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <style>
+        body {{ font-family: Arial; padding: 20px; background: #f0f0f0; }}
+        .container {{ max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }}
+        input, select {{ width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }}
+        textarea {{ width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; min-height: 200px; resize: vertical; box-sizing: border-box; font-family: monospace; font-size: 12px; }}
+        button {{ width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }}
+        button:hover {{ background: #45a049; }}
+        h2 {{ text-align: center; color: #333; }}
+        .token-info {{ font-size: 12px; color: #666; margin: 5px 0; }}
+        .form-group {{ margin: 15px 0; }}
+        label {{ display: block; margin-bottom: 5px; font-weight: bold; }}
+        .conn-toggle {{ display: flex; gap: 10px; margin: 15px 0; }}
+        .conn-toggle label {{ flex: 1; text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-weight: normal; }}
+        .conn-toggle input {{ display: none; }}
+        .conn-toggle input:checked + span {{ font-weight: bold; color: #4CAF50; }}
+        #sim-section, #wifi-section {{ display: none; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>iziot Settings</h2>
+        <form method="POST" action="/setup" enctype="application/x-www-form-urlencoded">
+
+            <div class="form-group">
+                <label>How should this device connect to the Internet?</label>
+                <div class="conn-toggle">
+                    <label><input type="radio" name="connection_type" value="wifi" onclick="toggleConn()" checked><span>WiFi</span></label>
+                    <label><input type="radio" name="connection_type" value="sim" onclick="toggleConn()"><span>SIM Card</span></label>
+                </div>
+            </div>
+
+            <div id="wifi-section">
+                <div class="form-group">
+                    <label for="ssid">WiFi Network Name:</label>
+                    <input type="text" id="ssid" name="ssid" placeholder="Enter WiFi name">
+                </div>
+                <div class="form-group">
+                    <label for="password">WiFi Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter WiFi password">
+                </div>
+            </div>
+
+            <div id="sim-section">
+                <div class="form-group">
+                    <label for="apn_select">SIM Carrier APN:</label>
+                    <select id="apn_select" name="apn_select" onchange="toggleApnCustom()">
+                        {apn_options}
+                    </select>
+                </div>
+                <div class="form-group" id="apn-custom-group" style="display:none;">
+                    <label for="apn_custom">Custom APN:</label>
+                    <input type="text" id="apn_custom" name="apn_custom" placeholder="Enter APN manually">
+                </div>
+                <div class="form-group">
+                    <label for="apn_user">APN Username (optional):</label>
+                    <input type="text" id="apn_user" name="apn_user" placeholder="Leave blank if not required">
+                </div>
+                <div class="form-group">
+                    <label for="apn_pass">APN Password (optional):</label>
+                    <input type="password" id="apn_pass" name="apn_pass" placeholder="Leave blank if not required">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="token">Server Token:</label>
+                <div class="token-info">Paste your complete token here (up to 8KB supported)</div>
+                <textarea id="token" name="token" placeholder="Paste your complete server token here..." required maxlength="8192"></textarea>
+                <div class="token-info" id="token-length">Token length: 0 characters</div>
+            </div>
+
+            <button type="submit">Save and Setup</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleConn() {{
+            var type = document.querySelector('input[name="connection_type"]:checked').value;
+            document.getElementById('wifi-section').style.display = (type === 'wifi') ? 'block' : 'none';
+            document.getElementById('sim-section').style.display = (type === 'sim') ? 'block' : 'none';
+        }}
+        function toggleApnCustom() {{
+            var val = document.getElementById('apn_select').value;
+            document.getElementById('apn-custom-group').style.display = (val === 'custom') ? 'block' : 'none';
+        }}
+        document.getElementById('token').addEventListener('input', function() {{
+            document.getElementById('token-length').innerText = 'Token length: ' + this.value.length + ' characters';
+        }});
+        toggleConn();
+        toggleApnCustom();
+    </script>
+</body>
+</html>""".format(apn_options=apn_options_html)
+
+        s = socket.socket()
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(('', 80))
+        s.listen(5)
+        print("Web server started on port 80")
+
+        while True:
+            conn, addr = s.accept()
+            print("Connection from: " + str(addr))
+
+            try:
+                request_data = b''
+                conn.settimeout(5)
+
+                while True:
+                    try:
+                        chunk = conn.recv(1024)
+                        if not chunk:
+                            break
+                        request_data += chunk
+
+                        if b'\r\n\r\n' in request_data:
+                            parts = request_data.split(b'\r\n\r\n', 1)
+                            headers = parts[0]
+
+                            if b'POST' in headers:
+                                body_part = parts[1] if len(parts) > 1 else b''
+                                content_length = 0
+                                for line in headers.split(b'\r\n'):
+                                    if line.lower().startswith(b'content-length:'):
+                                        content_length = int(line.split(b':')[1].strip())
+                                        break
+
+                                while len(body_part) < content_length:
+                                    more_data = conn.recv(min(1024, content_length - len(body_part)))
+                                    if not more_data:
+                                        break
+                                    body_part += more_data
+                                    request_data = headers + b'\r\n\r\n' + body_part
+                                break
+                    except Exception:
+                        break
+
+                try:
+                    request = request_data.decode('utf-8')
+                except Exception:
+                    request = ''
+                    for byte in request_data:
+                        try:
+                            char = chr(byte)
+                            if ord(char) < 128:
+                                request += char
+                        except Exception:
+                            pass
+
+                if 'POST /setup' in request:
+                    try:
+                        body = request.split('\r\n\r\n')[1]
+                    except Exception:
+                        print("Error: Could not extract request body")
+                        continue
+
+                    params = {}
+                    current_param = ""
+                    current_value = ""
+                    reading_value = False
+
+                    i = 0
+                    while i < len(body):
+                        char = body[i]
+
+                        if char == '=' and not reading_value:
+                            current_param = current_value
+                            current_value = ""
+                            reading_value = True
+                        elif char == '&' or i == len(body) - 1:
+                            if i == len(body) - 1 and char != '&':
+                                current_value += char
+                            if current_param:
+                                decoded_value = self.url_decode(current_value)
+                                params[current_param] = decoded_value.strip()
+                            current_param = ""
+                            current_value = ""
+                            reading_value = False
+                        else:
+                            current_value += char
+
+                        i += 1
+
+                    connection_type = params.get('connection_type', 'wifi').strip() or 'wifi'
+                    ssid = params.get('ssid', '').strip()
+                    password = params.get('password', '').strip()
+                    token = params.get('token', '').strip()
+                    apn_select = params.get('apn_select', '').strip()
+                    apn_custom = params.get('apn_custom', '').strip()
+                    apn_user = params.get('apn_user', '').strip()
+                    apn_pass = params.get('apn_pass', '').strip()
+
+                    apn = apn_custom if apn_select == 'custom' else apn_select
+
+                    print("Received - Connection type:", connection_type)
+                    print("Received - SSID:", ssid)
+                    print("Received - Password length:", len(password))
+                    print("Received - APN:", apn)
+                    print("Received - Token length:", len(token))
+
+                    valid = False
+                    if connection_type == 'wifi':
+                        valid = bool(ssid and password and token)
+                    elif connection_type == 'sim':
+                        valid = bool(apn and token)
+
+                    if valid:
+                        saved = self.save_wifi_config(
+                            ssid, password, token, connection_type, apn, apn_user, apn_pass
+                        )
+                        if saved:
+                            response = """HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n
+<html><body style="font-family:Arial;text-align:center;padding:50px;">
+<h2>Settings saved successfully!</h2>
+<p>Device is restarting...</p>
+</body></html>"""
+                        else:
+                            response = """HTTP/1.1 400 Bad Request\r\nContent-Type: text/html; charset=utf-8\r\n\r\n
+<html><body style="font-family:Arial;text-align:center;padding:50px;">
+<h2>Error: Invalid token!</h2>
+<p><a href="/">Try Again</a></p>
+</body></html>"""
+                    else:
+                        saved = False
+                        response = """HTTP/1.1 400 Bad Request\r\nContent-Type: text/html; charset=utf-8\r\n\r\n
+<html><body style="font-family:Arial;text-align:center;padding:50px;">
+<h2>Error: Missing required fields!</h2>
+<p><a href="/">Try Again</a></p>
+</body></html>"""
+
+                    conn.send(response.encode())
+                    conn.close()
+                    s.close()
+
+                    if saved:
+                        print("Restarting device...")
+                        time.sleep(2)
+                        machine.reset()
+                    return
+
+                else:
+                    response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n" + html
+                    conn.send(response.encode())
+
+            except Exception as e:
+                print("Error handling request:", str(e))
+
+            finally:
+                conn.close()
+
+    def url_decode(self, s):
+        replacements = {
+            '%20': ' ', '%21': '!', '%22': '"', '%23': '#', '%24': '$',
+            '%25': '%', '%26': '&', '%27': "'", '%28': '(', '%29': ')',
+            '%2A': '*', '%2B': '+', '%2C': ',', '%2D': '-', '%2E': '.',
+            '%2F': '/', '%3A': ':', '%3B': ';', '%3C': '<', '%3D': '=',
+            '%3E': '>', '%3F': '?', '%40': '@', '%5B': '[', '%5C': '\\',
+            '%5D': ']', '%5E': '^', '%5F': '_', '%60': '`', '%7B': '{',
+            '%7C': '|', '%7D': '}', '%7E': '~'
+        }
+        for encoded, decoded in replacements.items():
+            s = s.replace(encoded, decoded)
+        return s
+
+    # ---------------------------------------------------------
+    #  Connectivity (unchanged)
+    # ---------------------------------------------------------
+    def connect_wifi(self, ssid, password):
+        wlan = network.WLAN(network.STA_IF)
+        wlan.active(True)
+        wlan.connect(ssid, password)
+
+        print("Connecting to " + ssid + "...")
+        timeout = 0
+        while not wlan.isconnected() and timeout < 30:
+            print(".", end="")
+            time.sleep(1)
+            timeout += 1
+
+        if wlan.isconnected():
+            print("\nConnected successfully! IP: " + wlan.ifconfig()[0])
+            return True
+        else:
+            print("\nFailed to connect to WiFi")
+            return False
+
+    def connect_to_internet(self):
+        if self.connection_type == 'sim':
+            print("Connecting to internet via SIM800L (GPRS)...")
+            if not self.sim800:
+                self.sim800 = SIM800L()
+                self.sim800.init_module()
+
+            if not self.sim800.is_present():
+                print("SIM800L not responding")
+                return False
+
+            if not self.sim800.connect_gprs(self.apn, self.apn_user, self.apn_pass):
+                print("GPRS connection failed")
+                return False
+
+            self.connect_sim_ppp_if_available()
+            return True
+        else:
+            return self.connect_wifi(self.ssid, self.password)
+
+    def connect_sim_ppp_if_available(self):
+        if self.sim800:
+            self.sim800.connect_ppp()
+
+    # ---------------------------------------------------------
+    #  Token / camera helpers
+    # ---------------------------------------------------------
+    def decode_token(self, token):
+        try:
+            decoded = ubinascii.a2b_base64(token).decode('utf-8')
+            json_data = ujson.loads(decoded)
+            print("Token decoded successfully: " + str(json_data))
+            return json_data
+        except Exception as e:
+            print("Error decoding token: " + str(e))
+            self.clear_config_and_reset()
+            return None
+
+    def extract_server_url(self, json_data):
+        try:
+            server_url = json_data.get('url', '')
+            if server_url:
+                print("Server URL extracted: " + server_url)
+                return server_url
+            else:
+                print("URL field not found in token")
+                return None
+        except Exception as e:
+            print("Error extracting server URL: " + str(e))
+            return None
+
+    def extract_resolution(self, json_data):
+        try:
+            resolution = json_data.get('resolution', '800x600')
+            if 'x' in resolution:
+                resolution = resolution.replace('x', ' ')
+            print("Resolution: {}".format(resolution))
+            return resolution
+        except Exception:
+            return '800 600'
+
+    def check_thermometer_attribute(self, json_data):
+        try:
+            attributes = json_data.get('attribute', '')
+            if isinstance(attributes, list):
+                has_thermometer = 'Thermometer' in attributes
+            elif isinstance(attributes, str):
+                has_thermometer = 'Thermometer' in attributes
+            else:
+                has_thermometer = False
+            print("Thermometer attribute check: " + str(has_thermometer))
+            return has_thermometer
+        except Exception as e:
+            print("Error checking thermometer attribute: " + str(e))
+            return False
+
+    def check_rotate_attribute(self, json_data):
+        try:
+            attributes = json_data.get('attribute', '')
+            if isinstance(attributes, list):
+                has_rotate = 'Rotate' in attributes
+            elif isinstance(attributes, str):
+                has_rotate = 'Rotate' in attributes
+            else:
+                has_rotate = False
+            print("Rotate attribute check: " + str(has_rotate))
+            return has_rotate
+        except Exception as e:
+            print("Error checking Rotate attribute: " + str(e))
+            return False
+
+    # ---------------------------------------------------------
+    #  Camera – simplified (no extra keyword args)
+    # ---------------------------------------------------------
+    def init_camera_with_resolution(self, resolution_str):
+        try:
+            # Deinitialize
+            try:
+                camera.deinit()
+            except:
+                pass
+            time.sleep(0.1)
+            gc.collect()
+
+            # Initialize with only id and format (most compatible)
+            try:
+                camera.init(0, format=camera.JPEG)
+            except TypeError:
+                # If format is not accepted, try with just id
+                camera.init(0)
+
+            # Quality
+            quality = 20 if resolution_str in ["1600 1200", "1280 1024"] else 10
+            camera.quality(quality)
+
+            # Frame size
+            res_map = {
+                "96 96": camera.FRAME_96X96,
+                "160 120": camera.FRAME_QQVGA,
+                "176 144": camera.FRAME_QCIF,
+                "240 176": camera.FRAME_HQVGA,
+                "320 240": camera.FRAME_QVGA,
+                "400 296": camera.FRAME_CIF,
+                "640 480": camera.FRAME_VGA,
+                "800 600": camera.FRAME_SVGA,
+                "1024 768": camera.FRAME_XGA,
+                "1280 1024": camera.FRAME_SXGA,
+                "1600 1200": camera.FRAME_UXGA
+            }
+            frame_size = res_map.get(resolution_str, camera.FRAME_VGA)
+            camera.framesize(frame_size)
+
+            if self.has_rotate:
+                camera.flip(1)
+                camera.mirror(1)
+
+            print("Camera initialized with resolution: {}".format(resolution_str))
+            self.camera_initialized = True
+            self.resolution = resolution_str
+            return True
+
+        except Exception as e:
+            print("Camera init failed for {}: {}".format(resolution_str, e))
+            self.camera_initialized = False
+            return False
+
+    def ensure_camera_ready(self):
+        if self.camera_initialized:
+            return True
+
+        if self.init_camera_with_resolution(self.resolution):
+            return True
+
+        for fallback in self.resolution_fallback_list:
+            if fallback == self.resolution:
+                continue
+            print("Trying fallback resolution: {}".format(fallback))
+            if self.init_camera_with_resolution(fallback):
+                return True
+
+        print("All camera initialization attempts failed.")
+        return False
+
+    def capture_image(self):
+        try:
+            if not self.ensure_camera_ready():
+                return None
+
+            gc.collect()
+            buf = camera.capture()
+            if buf:
+                print("Image captured - Size: " + str(len(buf)) + " bytes")
+                return buf
+            else:
+                print("Camera capture returned empty buffer.")
+                self.camera_initialized = False
+                return None
+        except Exception as e:
+            print("Error capturing image: " + str(e))
+            self.camera_initialized = False
+            return None
+
+    # ---------------------------------------------------------
+    #  Thermometer (unchanged)
+    # ---------------------------------------------------------
+    def get_temperature(self):
+        try:
+            import onewire
+            import ds18x20
+            from machine import Pin as _Pin
+
+            ds_pin = _Pin(2)
+            ds_sensor = ds18x20.DS18X20(onewire.OneWire(ds_pin))
+
+            roms = ds_sensor.scan()
+            print("Found DS18B20 devices:", len(roms))
+
+            if len(roms) == 0:
+                print("No DS18B20 sensors found")
+                return "-"
+
+            ds_sensor.convert_temp()
+            time.sleep_ms(750)
+
+            temperatures = []
+            for i, rom in enumerate(roms):
+                try:
+                    temp = ds_sensor.read_temp(rom)
+                    if temp is not None:
+                        temperatures.append(round(temp, 2))
+                        print("Sensor " + str(i) + " temperature: " + str(temp) + "°C")
+                    else:
+                        print("Sensor " + str(i) + " returned None")
+                except Exception as e:
+                    print("Error reading sensor " + str(i) + ": " + str(e))
+
+            if temperatures:
+                avg_temp = sum(temperatures) / len(temperatures)
+                print("Average temperature: " + str(round(avg_temp, 2)) + "°C")
+                return round(avg_temp, 2)
+            else:
+                print("No valid temperature readings")
+                return 25.0
+
+        except ImportError:
+            print("DS18B20 libraries not available, using random temperature")
+            import random
+            temp = 20 + random.randint(0, 20)
+            print("Random temperature: " + str(temp) + "°C")
+            return temp
+        except Exception as e:
+            print("Error reading temperature: " + str(e))
+            return 25.0
+
+    # ---------------------------------------------------------
+    #  RTP protocol (uses _parse_url for host extraction)
+    # ---------------------------------------------------------
+    def encrypt(self, data, key, encoding='utf-8'):
+        if not key:
+            raise ValueError("Key cannot be empty")
+        if isinstance(key, str):
+            key_bytes = key.encode(encoding)
+        else:
+            key_bytes = key
+        key_length = len(key_bytes)
+        return bytearray(data[i] ^ key_bytes[i % key_length] for i in range(len(data)))
+
+    def decrypt(self, data, key, encoding='utf-8'):
+        return self.encrypt(data, key, encoding)
+
+    def RTPFunction(self, datatype, token, data):
+        # Use _parse_url to extract host and port
+        scheme, host, port, _ = self._parse_url(self.server_url)
+        port = 9085  # override port to 9085
+
+        print("--------------------------")
+        print("Host:", host)
+        print("Port:", port)
+        print("--------------------------")
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(30)
+
+        try:
+            print("Connecting to {}:{}".format(host, port))
+            sock.connect((host, port))
+            print("Connected successfully!")
+
+            key = token[0:16]
+            print("Sending token (length: {})".format(len(token)))
+            sock.sendall(token.encode('utf-8'))
+
+            acknowage_1 = sock.recv(1024).decode('utf-8')
+            print("Acknowledgment 1 from server: {}".format(acknowage_1))
+
+            print("Sending Data type: {}".format(datatype))
+            sock.sendall(self.encrypt(datatype.encode('utf-8'), key))
+
+            acknowage_2 = sock.recv(1024).decode('utf-8')
+            print("Acknowledgment 2 from server: {}".format(acknowage_2))
+
+            if datatype == "IMAGE" or datatype == "PICTURE":
+                print("Sending Image To Server Starting")
+                try:
+                    if isinstance(data, (bytes, bytearray)):
+                        file_data = bytes(data)
+                        filename = "capture.jpg"
+                    else:
+                        filename = data.split('/')[-1]
+                        with open(data, 'rb') as f:
+                            file_data = f.read()
+
+                    file_size = len(file_data)
+
+                    filename_encoded = filename.encode('utf-8')
+                    sock.sendall(struct.pack('!I', len(filename_encoded)))
+                    sock.sendall(filename_encoded)
+                    sock.sendall(struct.pack('!Q', file_size))
+                    sock.sendall(self.encrypt(file_data, key))
+                    print("Image sent to server ({} bytes)".format(file_size))
+
+                except Exception as e:
+                    print("Error sending image: {}".format(e))
+
+            else:
+                print("Sending Data To Server Starting")
+                sock.sendall(self.encrypt(data.encode('utf-8'), key))
+                print("Data Sent To Server")
+
+        except OSError as e:
+            print("RTPFunction OSError: {} (Error code: {})".format(e, e.args[0] if e.args else 'N/A'))
+        except Exception as e:
+            print("RTPFunction error: {}".format(e))
+        finally:
+            sock.close()
+
+    # ---------------------------------------------------------
+    #  Location upload (HTTP POST to /Loc) – unchanged
+    # ---------------------------------------------------------
+    def _parse_url(self, url):
+        scheme = 'http'
+        rest = url
+        if '://' in url:
+            scheme, rest = url.split('://', 1)
+        if '/' in rest:
+            host_port, path = rest.split('/', 1)
+            path = '/' + path
+        else:
+            host_port, path = rest, ''
+        if ':' in host_port:
+            host, port_str = host_port.split(':', 1)
+            port = int(port_str)
+        else:
+            host = host_port
+            port = 443 if scheme == 'https' else 80
+        return scheme, host, port, path
+
+    def http_post_query_wifi(self, path, query_params, headers=None, timeout=10):
+        scheme, host, port, base_path = self._parse_url(self.server_url)
+        full_path = base_path.rstrip('/') + path
+        if query_params:
+            qs = '&'.join('{}={}'.format(k, v) for k, v in query_params.items())
+            full_path += '?' + qs
+
+        sock = socket.socket()
+        sock.settimeout(timeout)
+        try:
+            addr = socket.getaddrinfo(host, port)[0][-1]
+            sock.connect(addr)
+            if scheme == 'https':
+                if not ussl:
+                    print("HTTPS requested but ussl unavailable")
+                    return None
+                sock = ussl.wrap_socket(sock, server_hostname=host)
+
+            request_lines = [
+                'POST {} HTTP/1.1'.format(full_path),
+                'Host: {}'.format(host),
+                'Connection: close',
+            ]
+            if headers:
+                for k, v in headers.items():
+                    request_lines.append('{}: {}'.format(k, v))
+            request_lines.append('')
+            request_lines.append('')
+            request = '\r\n'.join(request_lines)
+
+            sock.write(request.encode('utf-8'))
+
+            response = b''
+            while True:
+                chunk = sock.read(512)
+                if not chunk:
+                    break
+                response += chunk
+
+            return response.decode('utf-8', 'ignore')
+        except Exception as e:
+            print("HTTP POST (WiFi) error:", e)
+            return None
+        finally:
+            sock.close()
+
+    def send_location_to_server(self, lat, lng):
+        loc_str = "{:.6f},{:.6f}".format(lat, lng)
+        headers = {"HubFlag": self.token}
+        query = {"loc": loc_str}
+
+        print("Sending location to server: {}".format(loc_str))
+
+        if self.connection_type == 'sim' and self.sim800 and self.sim800.gprs_connected:
+            resp = self.sim800.http_post_query(self.server_url, "/Loc", query, headers)
+        else:
+            resp = self.http_post_query_wifi("/Loc", query, headers)
+
+        print("Location upload response:", resp)
+        return resp
+
+    # ---------------------------------------------------------
+    #  SMS handling (unchanged)
+    # ---------------------------------------------------------
+    def check_and_reply_sms(self):
+        if not self.sim800:
+            return
+
+        messages = self.sim800.check_incoming_sms()
+        for index, sender, text in messages:
+            print("Incoming SMS from {}: {}".format(sender, text))
+            clean_text = text.strip().lower()
+
+            if 'location' in clean_text:
+                lat, lng = (None, None)
+                if self.gps:
+                    lat, lng = self.gps.read_fix(5000)
+
+                if lat is not None and lng is not None:
+                    self.last_lat, self.last_lng = lat, lng
+                    reply = "{:.6f}-{:.6f}".format(lat, lng)
+                elif self.last_lat is not None:
+                    reply = "{:.6f}-{:.6f}".format(self.last_lat, self.last_lng)
+                else:
+                    reply = "No GPS fix available"
+
+                self.sim800.send_sms(sender, reply)
+
+            self.sim800.delete_sms(index)
+
+    # ---------------------------------------------------------
+    #  Main loop – continuous capture + location after each image
+    # ---------------------------------------------------------
+    def main_loop(self, token):
+        self.last_location_send = time.ticks_ms() - LOCATION_SEND_INTERVAL_MS
+        self.last_sms_check = time.ticks_ms() - SMS_CHECK_INTERVAL_MS
+
+        while True:
+            try:
+                print("\n--- Starting new cycle ---")
+                now = time.ticks_ms()
+
+                # 1) SMS check
+                if self.sim800 and time.ticks_diff(now, self.last_sms_check) >= SMS_CHECK_INTERVAL_MS:
+                    self.check_and_reply_sms()
+                    self.last_sms_check = now
+
+                # 2) GPS fix – if GPS is None or fails, just skip (no crash)
+                if self.gps:
+                    lat, lng = self.gps.read_fix(10000)
+                    if lat is not None and lng is not None:
+                        self.last_lat, self.last_lng = lat, lng
+                        print("GPS fix obtained: {},{}".format(lat, lng))
+                    else:
+                        print("No GPS fix this cycle, using last known if available.")
+                else:
+                    print("GPS not available, skipping location read.")
+
+                # 3) Thermometer
+                if self.has_thermometer:
+                    print("--- Thermometer detected - Getting temperature ---")
+                    temperature = self.get_temperature()
+                    self.RTPFunction("TEMP", token, str(temperature))
+
+                # 4) Capture image
+                print("--- Capturing new image ---")
+                image_buffer = self.capture_image()
+                gc.collect()
+
+                if image_buffer:
+                    self.RTPFunction("IMAGE", token, image_buffer)
+                    del image_buffer
+                    gc.collect()
+
+                    # 5) Send location after image upload (only if we have coordinates)
+                    if self.last_lat is not None and self.last_lng is not None:
+                        self.send_location_to_server(self.last_lat, self.last_lng)
+                    else:
+                        print("No location to send (no GPS fix yet).")
+                else:
+                    print("Capture failed. Retrying in next cycle.")
+                    time.sleep(2)
+
+                time.sleep_ms(100)
+
+            except Exception as e:
+                print("Main loop error: {}".format(e))
+                time.sleep(5)
+
+    # ---------------------------------------------------------
+    #  Setup entry point
+    # ---------------------------------------------------------
+    def run_setup_mode(self):
+        try:
+            self.led_pin = Pin(LED_PIN, Pin.OUT)
+            self.reset_pin = Pin(RESET_PIN, Pin.IN, Pin.PULL_UP)
+        except Exception as e:
+            print(f"Pin initialization error: {e}")
+
+        (ssid, password, token, connection_type,
+         apn, apn_user, apn_pass) = self.load_wifi_config()
+
+        if token and self.validate_token(token) and (
+            (connection_type == 'wifi' and ssid and password) or
+            (connection_type == 'sim' and apn)
+        ):
+            self.token = token
+            self.connection_type = connection_type
+            self.ssid = ssid
+            self.password = password
+            self.apn = apn
+            self.apn_user = apn_user
+            self.apn_pass = apn_pass
+
+            self.gps = NEO6MGPS()
+            self.sim800 = SIM800L()
+            self.sim800.init_module()
+
+            if self.connect_to_internet():
+                json_data = self.decode_token(token)
+                if json_data:
+                    self.server_url = self.extract_server_url(json_data)
+                    self.resolution = self.extract_resolution(json_data)
+                    self.has_thermometer = self.check_thermometer_attribute(json_data)
+                    self.has_rotate = self.check_rotate_attribute(json_data)
+
+                    if self.ensure_camera_ready():
+                        self.main_loop(token)
+                    else:
+                        print("Critical: Camera failed to initialize. Reverting to Hotspot mode.")
+                        self.clear_config_and_reset()
+                else:
+                    print("Invalid token data. Reverting to Hotspot mode.")
+                    self.clear_config_and_reset()
+            else:
+                print("Internet connection failed. Reverting to Hotspot mode.")
+                self.clear_config_and_reset()
+        else:
+            print("No valid config found. Starting Hotspot setup.")
+            ip = self.create_hotspot()
+            self.setup_web_server(ip)
+
+
+# =============================================================
+#  Main entry point
+# =============================================================
+if __name__ == '__main__':
+    gc.collect()
+    app = IziotCamDevice()
+    app.run_setup_mode()

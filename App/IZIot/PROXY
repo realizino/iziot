@@ -1,0 +1,53 @@
+$env:HTTP_PROXY="http://127.0.0.1:47244"
+$env:HTTPS_PROXY="http://127.0.0.1:47244"
+
+SET HTTP_PROXY=127.0.0.1:47244
+SET HTTPS_PROXY=127.0.0.1:47244
+
+setx HTTP_PROXY http://127.0.0.1:47244
+setx HTTPS_PROXY http://127.0.0.1:47244
+
+
+// Set china Mirror
+setx PUB_HOSTED_URL https://pub.flutter-io.cn
+setx FLUTTER_STORAGE_BASE_URL https://storage.flutter-io.cn
+
+setx PUB_HOSTED_URL https://mirror-flutter.runflare.com
+setx FLUTTER_STORAGE_BASE_URL https://mirror-gcs.runflare.com
+
+
+
+
+
+
+
+Remove-Item Env:HTTP_PROXY
+Remove-Item Env:HTTPS_PROXY
+[Environment]::SetEnvironmentVariable("HTTP_PROXY", $null, "User")
+[Environment]::SetEnvironmentVariable("HTTPS_PROXY", $null, "User")
+SET HTTPS_PROXY=
+SET HTTP_PROXY=
+
+REG DELETE "HKCU\Environment" /V PUB_HOSTED_URL /F
+REG DELETE "HKCU\Environment" /V FLUTTER_STORAGE_BASE_URL /F
+
+Remove-Item Env:\FLUTTER_STORAGE_BASE_URL -ErrorAction SilentlyContinue
+Remove-Item Env:\PUB_HOSTED_URL -ErrorAction SilentlyContinue
+
+Remove-Item Env:\FLUTTER_STORAGE_BASE_URL -ErrorAction SilentlyContinue
+Remove-Item Env:\PUB_HOSTED_URL -ErrorAction SilentlyContinue
+
+
+
+
+
+
+
+
+
+
+
+
+Firebase
+$env:Path += ";C:\Users\rezafta\AppData\Local\Pub\Cache\bin"
+keytool -list -v -alias androiddebugkey -keystore "$env:USERPROFILE\.android\debug.keystore" -storepass android

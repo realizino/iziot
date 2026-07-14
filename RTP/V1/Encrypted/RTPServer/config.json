@@ -1,9 +1,0 @@
-{
-  "app":{
-    "PORT": 9085,
-    "HOST": "0.0.0.0",
-    "DESTINATEDURL": "localhost:8080",
-    "DESTINATEDURLPROTOCOL": "http", 
-    "UPLOAD_DIR": "C:\\Users\\rezafta\\Desktop\\DashaxFramework\\FileTmp"
-  }
-}
