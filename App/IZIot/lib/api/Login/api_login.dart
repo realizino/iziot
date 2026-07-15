@@ -91,7 +91,7 @@ class api_login
       {
         if(user_data.verify_check=="0")
         {
-          Strings.UT_Token=user_data.login_token;
+          Strings.UT_Token=user_data.loginToken;
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => activity_verify( email: user_data.email, )), (
@@ -101,7 +101,7 @@ class api_login
         {
           if(user_data.name.isEmpty || user_data.family.isEmpty || user_data.phone.isEmpty || user_data.bio.isEmpty)
           {
-            Strings.UT_Token=user_data.login_token;
+            Strings.UT_Token=user_data.loginToken;
             Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => activity_signupdone()), (
@@ -158,35 +158,13 @@ class api_login
 
     //Get convert result to json
     var data=jsonDecode(result["data"].toString());
-    var output = User_Model.fromjson(data["user"]);
+    var output = User_Model.fromJson(data["user"]);
 
     Strings.UserData=output;
-    Strings.ProfileImage=data["image"];
-    Strings.UnseenMessagesCount=data["count_messages"];
-
-    Strings.Messages= await Get_User_All_Notifications(context);
 
     return output;
   }
 //Get user data end
-
-
-  //Get User All Services Start
-  Future<List<Notification_Model>> Get_User_All_Notifications(BuildContext context) async
-  {
-    Map<String,dynamic> response = await Server().Fetch_Get(context, "Notifications", true, false);
-    if(response["status"].toString()=="200")
-    {
-      List all=jsonDecode(response["data"].toString())["data"];
-      return all.map((e) => new Notification_Model.from_json(e)).toList().reversed.toList();
-    }
-    else
-    {
-      throw Exception("Network Error");
-    }
-  }
-//Get User All Services End
-
 
 
 //Get logout start

@@ -234,35 +234,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remove => 'Remove';
 
   @override
-  String get onboarding1_title => 'Online Business Card';
+  String get onboarding1_title => 'Smart IoT Solutions';
 
   @override
   String get onboarding1_text =>
-      'You can have a free online business card using the BzHub app and website.';
+      'Connect your devices and monitor them easily with IZIOT smart IoT solutions.';
 
   @override
-  String get onboarding2_title => 'Share Link & Location';
+  String get onboarding2_title => 'Track & Monitor Devices';
+
+  @override
+  String get onboarding2_text =>
+      'View your device status, location, and data anytime from anywhere.';
 
   @override
   String get currentlocation => 'Current Location';
 
   @override
-  String get onboarding2_text =>
-      'You can share your links and location with others on BzHub.';
-
-  @override
-  String get onboarding3_title => 'Share Your Business';
+  String get onboarding3_title => 'Control Your Smart World';
 
   @override
   String get onboarding3_text =>
-      'You can share your business on the BzHub map to help attract more customers.';
+      'Manage your IoT devices and access real-time information with IZIOT.';
 
   @override
   String get onboarding4_title => 'Are you ready?';
 
   @override
   String get onboarding4_text =>
-      'Let\'s go and start BzHub to see what it\'s like.';
+      'Let\'s start IZIOT and experience a smarter connected world.';
 
   @override
   String get alreadyhaveaccount => 'Already have an account? ';

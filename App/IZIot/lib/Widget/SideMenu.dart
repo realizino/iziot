@@ -1,11 +1,8 @@
-import 'package:iziot/Layout/RequestsLayout.dart';
+
 import 'package:iziot/Screens/activity_home.dart';
-import 'package:iziot/Screens/User/activity_newlocation.dart';
-import 'package:iziot/Screens/User/activity_notifications.dart';
 import 'package:iziot/Screens/User/activity_profile.dart';
 import 'package:iziot/Screens/activity_splash.dart';
 import 'package:iziot/Server/Server.dart';
-import 'package:iziot/api/Login/api_login.dart';
 import 'package:iziot/api/User/api_user.dart';
 import 'package:iziot/api/api.dart';
 import 'package:flutter/cupertino.dart';
@@ -75,30 +72,6 @@ class SideMenu_State extends State<SideMenu>
                 ,
                 InkWell(
                   onTap: (){
-
-                    // Navigator.of(context).pushNamedAndRemoveUntil("/Location", (route) => false);
-                    Navigator.push(context, MaterialPageRoute(builder: (content)=>activity_newlocation()));
-
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(left: 26,right: 26,bottom: 13,top: 13),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset("assets/icons/earth-americas.svg",width: 26,color: Theme.of(context).unselectedWidgetColor)
-                        ,
-                        Container(
-                          margin: EdgeInsets.all(6),
-                        )
-                        ,
-                        Text(AppLocalizations.of(context)!.addlocation,style: TextStyle( color: Color(0XFF9C9B9D),fontSize: 15 ),)
-                      ],
-                    ),
-                  ),
-                )
-                ,
-                InkWell(
-                  onTap: (){
                     ShowChangeLanguageAlertDialog(context);
                   },
                   child: Container(
@@ -112,54 +85,6 @@ class SideMenu_State extends State<SideMenu>
                         )
                         ,
                         Text(AppLocalizations.of(context)!.language,style: TextStyle( color: Color(0XFF9C9B9D),fontSize: 15 ),)
-                      ],
-                    ),
-                  ),
-                )
-                ,
-                InkWell(
-                  onTap: (){
-
-                    widget.onNotificationTap?.call();
-
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=> activity_notifications_state() ));
-
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(left: 26,right: 26,bottom: 13,top: 13),
-                    child: Row(
-                      children: [
-                        SvgPicture.asset("assets/icons/envelope-dot.svg",width: 26,color: Theme.of(context).unselectedWidgetColor)
-                        ,
-                        Container(
-                          margin: EdgeInsets.all(6),
-                        )
-                        ,
-                        Text(AppLocalizations.of(context)!.messages,style: TextStyle( color: Color(0XFF9C9B9D),fontSize: 15 ),)
-                        ,
-                        Container(
-                          margin: EdgeInsets.all(2),
-                        )
-                        ,
-                        (Strings.UnseenMessagesCount!=0)
-                            ?ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: Container(
-                            width: 18,
-                            height: 18,
-                            color: Colors.red,
-                            child: Center(
-                              child: Text(
-                                Strings.UnseenMessagesCount.toString(),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11
-                                ),
-                              ),
-                            ),
-                          ),
-                        ):Container()
-
                       ],
                     ),
                   ),

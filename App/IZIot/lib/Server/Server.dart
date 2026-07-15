@@ -11,8 +11,8 @@ import '../Data_Storage/Data_Saver.dart';
 import '../Screens/activity_splash.dart';
 
 class Server {
-  // static String Root_Address = "http://localhost:8000";
-  static String Root_Address = "https://m.bzhub.social";
+  static String Root_Address = "http://localhost:8080";
+  // static String Root_Address = "https://m.bzhub.social";
   static String Api_Address = Root_Address + "/api/V1/";
 
   Future<Map<String, dynamic>> Fetch_Post(
@@ -30,7 +30,7 @@ class Server {
         response = await http.post(
           Uri.parse(Api_Address + Url),
           body: Data,
-          headers: {"Authorization": "Bearer " + Strings.Token},
+          headers: {"Authorization": Strings.Token},
         );
       } else {
         response = await http.post(
@@ -149,7 +149,7 @@ class Server {
       if (Auth_Header) {
         response = await http.get(
           Uri.parse(Api_Address + Url),
-          headers: {"Authorization": "Bearer " + Strings.Token},
+          headers: {"Authorization": Strings.Token},
         );
       } else {
         response = await http.get(Uri.parse(Api_Address + Url));

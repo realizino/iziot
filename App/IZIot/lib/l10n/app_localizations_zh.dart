@@ -231,31 +231,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get remove => '删除';
 
   @override
-  String get onboarding1_title => '在线名片';
+  String get onboarding1_title => '智能物联网解决方案';
 
   @override
-  String get onboarding1_text => '您可以使用 BzHub 应用和网站免费创建在线名片。';
+  String get onboarding1_text => '连接您的设备，并通过 IZIOT 智能物联网解决方案轻松监控它们。';
 
   @override
-  String get onboarding2_title => '分享链接和位置';
+  String get onboarding2_title => '跟踪和监控设备';
+
+  @override
+  String get onboarding2_text => '随时随地查看设备状态、位置和数据。';
 
   @override
   String get currentlocation => '当前位置';
 
   @override
-  String get onboarding2_text => '您可以在 BzHub 上与其他人分享您的链接和位置。';
+  String get onboarding3_title => '控制您的智能世界';
 
   @override
-  String get onboarding3_title => '分享您的业务';
+  String get onboarding3_text => '使用 IZIOT 管理您的物联网设备并访问实时信息。';
 
   @override
-  String get onboarding3_text => '您可以在 BzHub 地图上分享您的业务，以吸引更多客户。';
+  String get onboarding4_title => '您准备好了吗？';
 
   @override
-  String get onboarding4_title => '准备好了吗？';
-
-  @override
-  String get onboarding4_text => '让我们开始使用 BzHub，看看它是什么样的。';
+  String get onboarding4_text => '让我们开始 IZIOT，体验更智能的互联世界。';
 
   @override
   String get alreadyhaveaccount => '已有账号？';

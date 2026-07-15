@@ -11,19 +11,89 @@
                 </span></span></span><span th:text="#{label.setting}"/>
             </h3>
         </div>
+
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title" style="text-align: center;" th:text="#{label.setting}"/>
                         <form class="forms-sample" method="post" action="/Admin/Panel/Settings/Done">
-                            <div class="form-group" style="display: none;">
-                                <label for="exampleInputUsername1" th:text="#{label.version}"/>
-                                <input th:value="${version}" type="text" class="form-control" id="exampleInputUsername1" th:placeholer="#{label.version}" name="version" required>
+
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.iconaddress}"/>
+                                <input th:value="${parametrs.get('logo')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.iconaddress}" name="icon" required>
                             </div>
-                            <div class="form-group" style="display: none;">
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.sale_background}"/>
+                                <input th:value="${parametrs.get('sale_background')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.sale_background}" name="sale_background" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.version}"/>
+                                <input th:value="${version}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.version}" name="version" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.slider}"/>
+                                <textarea th:text="${parametrs.get('slider')}" style="height: 150px;" class="form-control" th:placeholder="#{label.slider}" name="slider" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.mostupdate}"/>
+                                <input th:value="${parametrs.get('mostupdate')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.mostupdate}" name="mostupdate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.update_link}"/>
+                                <input th:value="${parametrs.get('update_link')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.update_link}" name="update_link" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.backgroundaddress}"/>
+                                <input th:value="${parametrs.get('background')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.backgroundaddress}" name="background" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.ads_image}"/>
+                                <input th:value="${parametrs.get('ads_image')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.ads_image}" name="ads_image" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.ads_link}"/>
+                                <input th:value="${parametrs.get('ads_link')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.ads_link}" name="ads_link" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputUsername1" th:text="#{label.law}"/>
+                                <textarea th:text="${parametrs.get('law')}" style="height: 150px;" class="form-control" th:placeholder="#{label.law}" name="law" required></textarea>
+                            </div>
+                            <div class="form-group">
                                 <label for="exampleInputUsername1" th:text="#{label.esp32camcode}"/>
                                 <textarea th:text="${code}" style="height: 150px;resize: vertical;" class="form-control" th:placeholder="#{label.esp32camcode}" name="esp32cam_code" required></textarea>
+                            </div>
+
+                            <hr>
+                            <div class="row">
+                                <div class="form-group col-md-4">
+                                    <label for="exampleInputUsername1" th:text="#{label.payment_in_web}"/>
+                                    <input th:value="${parametrs.get('payment_in_web')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.payment_in_web}" name="payment_in_web" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="exampleInputUsername1" th:text="#{label.payment_in_android}"/>
+                                    <input th:value="${parametrs.get('payment_in_android')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.payment_in_android}" name="payment_in_android" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="exampleInputUsername1" th:text="#{label.payment_in_ios}"/>
+                                    <input th:value="${parametrs.get('payment_in_ios')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.payment_in_ios}" name="payment_in_ios" required>
+                                </div>
+                            </div>
+
+                            <br>
+                            <div class="row">
+                                <div class="form-group col-md-4">
+                                    <label for="exampleInputUsername1" th:text="#{label.onemon}"/>
+                                    <input th:value="${parametrs.get('onemon')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.onemon}" name="onemon" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="exampleInputUsername1" th:text="#{label.thremon}"/>
+                                    <input th:value="${parametrs.get('thremon')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.thremon}" name="thremon" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="exampleInputUsername1" th:text="#{label.twomon}"/>
+                                    <input th:value="${parametrs.get('twomon')}" type="text" class="form-control" id="exampleInputUsername1" th:placeholder="#{label.twomon}" name="twomon" required>
+                                </div>
                             </div>
 
                             <br>
@@ -34,6 +104,6 @@
             </div>
         </div>
     </div>
-<!--Send Notification To User End-->
+    <!--Send Notification To User End-->
 
-<ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />
+    <ftr class="insert" th:insert="@{Admin/Components/panel_footer}" />

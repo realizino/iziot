@@ -235,35 +235,35 @@ class AppLocalizationsTr extends AppLocalizations {
   String get remove => 'Kaldır';
 
   @override
-  String get onboarding1_title => 'Dijital Kartvizit';
+  String get onboarding1_title => 'Akıllı IoT Çözümleri';
 
   @override
   String get onboarding1_text =>
-      'BzHub uygulaması ve web sitesi ile ücretsiz bir dijital kartvizite sahip olabilirsiniz.';
+      'Cihazlarınızı bağlayın ve IZIOT akıllı IoT çözümleriyle kolayca izleyin.';
 
   @override
-  String get onboarding2_title => 'Bağlantı ve Konum Paylaş';
+  String get onboarding2_title => 'Cihazları İzle ve Takip Et';
+
+  @override
+  String get onboarding2_text =>
+      'Cihaz durumunuzu, konumunuzu ve verilerinizi her zaman, her yerden görüntüleyin.';
 
   @override
   String get currentlocation => 'Mevcut Konum';
 
   @override
-  String get onboarding2_text =>
-      'BzHub üzerinde bağlantılarınızı ve konumunuzu başkalarıyla paylaşabilirsiniz.';
-
-  @override
-  String get onboarding3_title => 'İşletmeni Paylaş';
+  String get onboarding3_title => 'Akıllı Dünyanızı Kontrol Edin';
 
   @override
   String get onboarding3_text =>
-      'Daha fazla müşteri çekmek için işletmenizi BzHub haritasında paylaşabilirsiniz.';
+      'IZIOT ile IoT cihazlarınızı yönetin ve gerçek zamanlı bilgilere erişin.';
 
   @override
-  String get onboarding4_title => 'Hazır mısın?';
+  String get onboarding4_title => 'Hazır mısınız?';
 
   @override
   String get onboarding4_text =>
-      'Hadi başlayalım, BzHub\'ın nasıl bir yer olduğunu görelim.';
+      'Hadi IZIOT\'u başlatalım ve daha akıllı bağlantılı bir dünya deneyimleyelim.';
 
   @override
   String get alreadyhaveaccount => 'Zaten hesabınız var mı? ';

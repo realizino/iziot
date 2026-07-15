@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:iziot/Data/Strings/Strings.dart';
 import 'package:iziot/Data_Storage/Data_Saver.dart';
-import 'package:iziot/Screens/User/activity_display.dart';
 import 'package:iziot/Screens/activity_home.dart';
 import 'package:iziot/Screens/Login/activity_login.dart';
 import 'package:iziot/Screens/activity_onboarding.dart';
@@ -169,9 +168,9 @@ class activity_splash extends State<activity_splash_state> {
                     api_login().GetUserData(context).then((value) {
                       time.cancel();
 
-                      if (value.status == "1") {
-                        if (value.verify_check == "0") {
-                          Strings.UT_Token = value.login_token;
+                      if (value!.status == "1") {
+                        if (value!.verify_check == "0") {
+                          Strings.UT_Token = value.loginToken;
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
@@ -182,7 +181,7 @@ class activity_splash extends State<activity_splash_state> {
                             value.family.isEmpty ||
                             value.phone.isEmpty ||
                             value.bio.isEmpty) {
-                          Strings.UT_Token = value.login_token;
+                          Strings.UT_Token = value.loginToken;
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(

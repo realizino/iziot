@@ -1,5 +1,6 @@
 package com.sorapp.jowncms.jowncms.Controllers.Admin;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sorapp.jowncms.jowncms.Function.Encript.EncriptService;
 import com.sorapp.jowncms.jowncms.Function.Requets.Requests;
 import com.sorapp.jowncms.jowncms.Middleware.AdminAuthCheckMiddleware;
@@ -29,7 +30,14 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,50 +45,6 @@ import java.util.List;
 @RequestMapping("/Admin")
 public class AdminDashController
 {
-
-
-
-    @Autowired
-    EncriptService Encription;
-
-    @Autowired
-    Users_Service User_Services;
-
-    @Autowired
-    City_Service City_Services;
-
-    @Autowired
-    IFileUpload FileUploadRepo;
-
-    @Autowired
-    Setting_Service Setting_Services;
-
-    @Autowired
-    UserType_Service UserType_Services;
-
-    @Autowired
-    Notification_Service Notification_Services;
-
-    @Autowired
-    com.sorapp.jowncms.jowncms.Service.Hubs.Hub_Service Hub_Service;
-
-    @Autowired
-    IOTFile_Service IotFileService;
-
-    @Value("${FileManagerRoot}")
-    String FileManager;
-
-    @Value("${IotFileRepo}")
-    String Repository;
-
-    @Value("${ServerPassword}")
-    String ServerPassword;
-
-    private final GoogleAuthenticator gAuth;
-
-
-
-
 
     /****************Dashboard Start****************/
     @RequestMapping("/Panel/Dashboard")
@@ -160,148 +124,6 @@ public class AdminDashController
         return response;
     }
     /****************Dashboard End****************/
-
-
-
-
-
-    /****************Opration done Start****************/
-    @RequestMapping("/Panel/Done")
-    public ModelAndView OprationDone(HttpServletRequest request)
-    {
-        ModelAndView response=new ModelAndView();
-        response.setViewName("Admin/done");
-        return response;
-    }
-
-    @RequestMapping("/Panel/DonePnl")
-    public ModelAndView OprationPnlDone(HttpServletRequest request)
-    {
-        users_tbl user = User_Services.GetUser(AdminAuthCheckMiddleware.user_data.getId());
-
-        ModelAndView response=new ModelAndView();
-        response.setViewName("Admin/donepnl");
-        response.addObject("user_data",user);
-        return response;
-    }
-
-    @RequestMapping("/Panel/NotDone")
-    public ModelAndView OprationNotDone(HttpServletRequest request)
-    {
-        ModelAndView response=new ModelAndView();
-        response.setViewName("Admin/notdone");
-        return response;
-    }
-
-    @RequestMapping("/Panel/NotDonePnl")
-    public ModelAndView OprationNotPnlDone(HttpServletRequest request)
-    {
-        users_tbl user = User_Services.GetUser(AdminAuthCheckMiddleware.user_data.getId());
-
-        ModelAndView response=new ModelAndView();
-        response.setViewName("Admin/notdonepnl");
-        response.addObject("user_data",user);
-        return response;
-    }
-    /****************Opration done End****************/
-
-
-
-
-    /****************Cites Start****************/
-
-    @RequestMapping(value = "/Panel/Cities")
-    public ModelAndView Cites(HttpServletRequest request)
-    {
-        ModelAndView response=new ModelAndView();
-        response.setViewName("Admin/cites");
-        response.addObject("user_data",AdminAuthCheckMiddleware.user_data);
-        response.addObject("Cites",City_Services.GetCites());
-        return response;
-    }
-
-    @RequestMapping(value = "/Panel/Cities/New",method = RequestMethod.POST)
-    public String City_New(HttpServletRequest request,String name,String area,String status,String timezone)
-    {
-        LocalDateTime datetime = LocalDateTime.now();
-        String time=datetime.getYear()+"/"+datetime.getMonthValue()+"/"+datetime.getDayOfMonth()+" "+datetime.getHour()+":"+datetime.getMinute()+":"+datetime.getSecond();
-
-        City_Services.NewCity(name,Integer.parseInt(area),status,time,timezone);
-        return "redirect:" + request.getHeader("referer");
-    }
-
-    @RequestMapping(value = "/Panel/Cities/Edit/{id}")
-    public ModelAndView EditCity(HttpServletRequest request,@PathVariable String id)
-    {
-        ModelAndView response=new ModelAndView();
-        response.setViewName("Admin/cites");
-        response.addObject("user_data",AdminAuthCheckMiddleware.user_data);
-        response.addObject("Cites",City_Services.GetCites());
-        response.addObject("edit_city",City_Services.GetCity(Integer.parseInt(id)));
-        return response;
-    }
-
-    @RequestMapping(value = "/Panel/Cities/Edit",method = RequestMethod.POST)
-    public String City_Edit(HttpServletRequest request,String id,String name,String area,String status,String timezone)
-    {
-        LocalDateTime datetime = LocalDateTime.now();
-        String time=datetime.getYear()+"/"+datetime.getMonthValue()+"/"+datetime.getDayOfMonth()+" "+datetime.getHour()+":"+datetime.getMinute()+":"+datetime.getSecond();
-
-        City_Services.UpdateCity(Integer.parseInt(id),name,Integer.parseInt(area),status,time,timezone);
-        return "redirect:" + "/Admin/Panel/Cities";
-    }
-
-    /****************Cites End****************/
-
-
-
-
-
-
-
-    /****************Setting Start****************/
-
-    @RequestMapping("/Panel/Settings")
-    public ModelAndView Settins()
-    {
-        settings_tbl settings_tbl=Setting_Services.GetSetting();
-
-        ModelAndView response=new ModelAndView();
-        response.addObject("version",settings_tbl.getVersion());
-        response.addObject("code",settings_tbl.getESP32CAM_Code());
-        response.addObject("user_data", AdminAuthCheckMiddleware.user_data);
-        response.setViewName("Admin/settings");
-        return response;
-    }
-
-    @RequestMapping(value = "/Panel/Settings/Done",method = RequestMethod.POST)
-    public String Settings(String esp32cam_code,String version)
-    {
-        Setting_Services.NewSetting(version,esp32cam_code);
-
-
-        //Get last codes
-        settings_tbl settings_tbl=Setting_Services.GetSetting();
-
-        //Get update hub by iot model start
-        List<hub_tbl> hubs = Hub_Service.GetAllHubs();
-        for(int i=0;i<hubs.size();i++)
-        {
-            if(hubs.get(i).getStatus().equals("Enable"))
-            {
-                String HubAddress = hubs.get(i).getIp_address();
-                Requests.StringRequest(HubAddress+"/update");
-            }
-        }
-        //Get update hub by iot model end
-
-        return "redirect:/Admin/Panel/Settings";
-    }
-
-    /****************Setting End****************/
-
-
-
 
 
 

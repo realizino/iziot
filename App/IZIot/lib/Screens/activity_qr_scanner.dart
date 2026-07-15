@@ -1,4 +1,3 @@
-import 'package:iziot/Screens/User/activity_display.dart';
 import 'package:iziot/Screens/User/activity_profile.dart';
 import 'package:iziot/Widget/TopBar.dart';
 import 'package:iziot/l10n/app_localizations.dart';
@@ -260,10 +259,7 @@ class activity_qr_scanner_state extends State<activity_qr_scanner>
         //   MaterialPageRoute(builder: (_) => activity_display()),
         //       (route) => false,
         // );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => activity_display())
-        );
+
       });
     }
   }

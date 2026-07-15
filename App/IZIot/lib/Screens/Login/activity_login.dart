@@ -15,12 +15,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../Services/Google/GoogleAuthService.dart';
-import '../../api/GoogleAuth/api_google_login.dart';
 import '../../l10n/app_localizations.dart';
 
 // ─── Brand colors ─────────────────────────────────────────────────────────────
-const _primary      = Color(0xFF61a896);
-const _primaryMuted = Color(0xFFEECDBC);
+const _primary      = Color(0xff61a896);
+const _primaryMuted = Color(0xffaeefe0);
 const _textMain     = Color(0xFF1C1C1E);
 const _textSub      = Color(0xFF9A9A9A);
 const _fieldBg      = Color(0xFFF2F2F2);
@@ -188,8 +187,6 @@ class activity_login_state extends State<activity_login> {
               loading: loginLoading,
               onTap: () => _loginEvent(context),
             ),
-            (MyApp.language != "fa")?const SizedBox(height: 10):Container(),
-            (MyApp.language != "fa")?_GoogleBtn():Container(),
             const SizedBox(height: 20),
             _SignupRow(),
           ],
@@ -274,8 +271,6 @@ class activity_login_state extends State<activity_login> {
                           loading: loginLoading,
                           onTap: () => _loginEvent(context),
                         ),
-                        (MyApp.language != "fa")?const SizedBox(height: 10):Container(),
-                        (MyApp.language != "fa")?_GoogleBtn():Container(),
                         const SizedBox(height: 20),
                         _SignupRow(),
                       ],
@@ -384,34 +379,6 @@ class activity_login_state extends State<activity_login> {
           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 1.8),
         )
             : Text(label, style: _btnStyle.copyWith(color: Colors.white)),
-      ),
-    );
-  }
-
-  // ─── GoogleBtn ───────────────────────────────────────────────────────────────
-  Widget _GoogleBtn() {
-    return SizedBox(
-      height: 46,
-      child: OutlinedButton(
-        onPressed: googleLoading ? null : _googleSignInEvent,
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1.2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          backgroundColor: Colors.white,
-        ),
-        child: googleLoading
-            ? const SizedBox(
-          width: 18, height: 18,
-          child: CircularProgressIndicator(strokeWidth: 1.8, color: _textSub),
-        )
-            : Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/icons/google.png', width: 18, height: 18),
-            const SizedBox(width: 10),
-            Text("Google", style: _btnStyle.copyWith(color: _textMain)),
-          ],
-        ),
       ),
     );
   }
@@ -546,40 +513,6 @@ class activity_login_state extends State<activity_login> {
   }
 
   // ─── Events ───────────────────────────────────────────────────────────────────
-
-  /// Google Sign-In event
-  /// 1. Firebase Google authentication
-  /// 2. Send idToken to server
-  /// 3. Navigate based on profile completeness
-  Future<void> _googleSignInEvent() async {
-    if (googleLoading) return;
-    setState(() => googleLoading = true);
-
-    try {
-      // Step 1: Firebase + Google authentication
-      final result = await _googleAuth.signInWithGoogle(context);
-
-      if (!mounted) return;
-
-      // User cancelled the sign-in flow
-      if (!result.success) {
-        if (result.errorMessage == 'cancelled') return;
-        _showErrorToast(result.errorMessage ?? 'Google sign-in failed');
-        return;
-      }
-
-      // Step 2: Send idToken to server — server verifies it and returns app JWT
-      await api_google_login().LoginOrSignup(
-        context,
-        result.idToken!,
-        email: result.email,
-        displayName: result.displayName,
-      );
-
-    } finally {
-      if (mounted) setState(() => googleLoading = false);
-    }
-  }
 
   /// Username/password login event
   Future<void> _loginEvent(BuildContext context) async {

@@ -235,35 +235,35 @@ class AppLocalizationsFa extends AppLocalizations {
   String get remove => 'حذف';
 
   @override
-  String get onboarding1_title => 'کارت ویزیت آنلاین';
+  String get onboarding1_title => 'راه‌حل‌های هوشمند اینترنت اشیا';
 
   @override
   String get onboarding1_text =>
-      'شما می‌توانید با استفاده از اپلیکیشن و وب‌سایت BzHub یک کارت ویزیت آنلاین رایگان داشته باشید.';
+      'دستگاه‌های خود را متصل کرده و به راحتی با راه‌حل‌های هوشمند IZIOT نظارت کنید.';
 
   @override
-  String get onboarding2_title => 'اشتراک‌گذاری لینک و موقعیت';
+  String get onboarding2_title => 'ردیابی و نظارت بر دستگاه‌ها';
+
+  @override
+  String get onboarding2_text =>
+      'وضعیت، موقعیت و داده‌های دستگاه خود را هر زمان و از هر مکان مشاهده کنید.';
 
   @override
   String get currentlocation => 'موقعیت فعلی';
 
   @override
-  String get onboarding2_text =>
-      'شما می‌توانید لینک‌ها و موقعیت خود را در BzHub با دیگران به اشتراک بگذارید.';
-
-  @override
-  String get onboarding3_title => 'کسب‌وکار خود را به اشتراک بگذارید';
+  String get onboarding3_title => 'دنیای هوشمند خود را کنترل کنید';
 
   @override
   String get onboarding3_text =>
-      'می‌توانید کسب‌وکار خود را روی نقشه BzHub به اشتراک بگذارید تا مشتریان بیشتری جذب کنید.';
+      'دستگاه‌های IoT خود را مدیریت کرده و به اطلاعات لحظه‌ای با IZIOT دسترسی داشته باشید.';
 
   @override
   String get onboarding4_title => 'آماده‌اید؟';
 
   @override
   String get onboarding4_text =>
-      'بزن بریم و BzHub را شروع کنیم تا ببینیم چطور است.';
+      'بیایید IZIOT را شروع کرده و دنیایی متصل و هوشمندتر را تجربه کنیم.';
 
   @override
   String get alreadyhaveaccount => 'از قبل حساب کاربری دارید؟ ';

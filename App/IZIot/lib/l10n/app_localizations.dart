@@ -561,20 +561,26 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding1_title.
   ///
   /// In en, this message translates to:
-  /// **'Online Business Card'**
+  /// **'Smart IoT Solutions'**
   String get onboarding1_title;
 
   /// No description provided for @onboarding1_text.
   ///
   /// In en, this message translates to:
-  /// **'You can have a free online business card using the BzHub app and website.'**
+  /// **'Connect your devices and monitor them easily with IZIOT smart IoT solutions.'**
   String get onboarding1_text;
 
   /// No description provided for @onboarding2_title.
   ///
   /// In en, this message translates to:
-  /// **'Share Link & Location'**
+  /// **'Track & Monitor Devices'**
   String get onboarding2_title;
+
+  /// No description provided for @onboarding2_text.
+  ///
+  /// In en, this message translates to:
+  /// **'View your device status, location, and data anytime from anywhere.'**
+  String get onboarding2_text;
 
   /// No description provided for @currentlocation.
   ///
@@ -582,22 +588,16 @@ abstract class AppLocalizations {
   /// **'Current Location'**
   String get currentlocation;
 
-  /// No description provided for @onboarding2_text.
-  ///
-  /// In en, this message translates to:
-  /// **'You can share your links and location with others on BzHub.'**
-  String get onboarding2_text;
-
   /// No description provided for @onboarding3_title.
   ///
   /// In en, this message translates to:
-  /// **'Share Your Business'**
+  /// **'Control Your Smart World'**
   String get onboarding3_title;
 
   /// No description provided for @onboarding3_text.
   ///
   /// In en, this message translates to:
-  /// **'You can share your business on the BzHub map to help attract more customers.'**
+  /// **'Manage your IoT devices and access real-time information with IZIOT.'**
   String get onboarding3_text;
 
   /// No description provided for @onboarding4_title.
@@ -609,7 +609,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding4_text.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s go and start BzHub to see what it\'s like.'**
+  /// **'Let\'s start IZIOT and experience a smarter connected world.'**
   String get onboarding4_text;
 
   /// No description provided for @alreadyhaveaccount.

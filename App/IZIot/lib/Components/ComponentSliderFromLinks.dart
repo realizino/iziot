@@ -85,7 +85,7 @@ class _ComponentSliderFromLinksState extends State<ComponentSliderFromLinks> {
   }
 
   Future<void> _openLink(String url) async {
-    url = url + "?token="+Strings.UserData.login_token;
+    url = url + "?token="+Strings.UserData.loginToken;
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

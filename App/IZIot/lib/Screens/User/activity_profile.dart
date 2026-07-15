@@ -5,7 +5,6 @@ import 'package:iziot/Data/Strings/Strings.dart';
 import 'package:iziot/Models/Categories/Categories_Model.dart';
 import 'package:iziot/Server/Server.dart';
 import 'package:iziot/Widget/TopBar.dart';
-import 'package:iziot/api/Categories/api_categories.dart';
 import 'package:iziot/api/User/api_user.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -52,8 +51,6 @@ class activity_profile_state extends State<activity_profile> {
   void initState() {
     super.initState();
     _bioController.text = Strings.UserData.bio;
-    _loadUserKeywords();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadCategories());
   }
 
   @override
@@ -64,29 +61,7 @@ class activity_profile_state extends State<activity_profile> {
     super.dispose();
   }
 
-  Future<void> _loadCategories() async {
-    if (!mounted) return;
-    setState(() => _loadingCats = true);
-    try {
-      final tree = await api_categories().GetCategories(context);
-      if (!mounted) return;
-      setState(() {
-        _categories  = tree;
-        _loadingCats = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loadingCats = false);
-      // Silent fail, no toast
-    }
-  }
 
-  void _loadUserKeywords() {
-    final kw = Strings.UserData.keywords ?? '';
-    if (kw.isNotEmpty) {
-      _selectedKeywords = kw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    }
-  }
 
   // ─── Build ───────────────────────────────────────────────────────────────────
   @override
@@ -123,19 +98,6 @@ class activity_profile_state extends State<activity_profile> {
     final imageUrl = (Strings.ProfileImage.isEmpty)
         ? Server.Root_Address+"/User/images/user.png"
         : Server.Root_Address+"/File/${Strings.ProfileImage}";
-
-    String? badgeIcon;
-    switch (Strings.UserData.blue_check) {
-      case "1":
-        badgeIcon = "assets/icons/blue_check.png";
-        break;
-      case "2":
-        badgeIcon = "assets/icons/yellow_check.png";
-        break;
-      case "3":
-        badgeIcon = "assets/icons/orange_check.png";
-        break;
-    }
 
     return Container(
       margin: EdgeInsets.only(top: 16,right: 16,left: 16,bottom: 10),
@@ -181,13 +143,6 @@ class activity_profile_state extends State<activity_profile> {
                           color: Colors.white, size: 14),
                     ),
                   ),
-                  if (Strings.UserData.blue_check != "0")
-                    Positioned(
-                      top: 72,
-                      left: 0,
-                      child: Image.asset(badgeIcon!,
-                          width: 22, height: 22),
-                    ),
                 ],
               ),
             ),
@@ -512,9 +467,6 @@ class activity_profile_state extends State<activity_profile> {
         }
         await api_user().AddNewPassword(context, _passwordController.text);
       }
-
-      await api_categories().SetUserCategoriesKeyword(
-          context, _selectedKeywords.join(','));
 
       _passwordController.clear();
       _rePasswordController.clear();

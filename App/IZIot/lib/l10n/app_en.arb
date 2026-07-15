@@ -73,15 +73,21 @@
     "chat": "Chat",
     "message": "Message",
     "remove": "Remove",
-    "onboarding1_title": "Online Business Card",
-    "onboarding1_text": "You can have a free online business card using the BzHub app and website.",
-    "onboarding2_title": "Share Link & Location",
+
+    "onboarding1_title": "Smart IoT Solutions",
+    "onboarding1_text": "Connect your devices and monitor them easily with IZIOT smart IoT solutions.",
+
+    "onboarding2_title": "Track & Monitor Devices",
+    "onboarding2_text": "View your device status, location, and data anytime from anywhere.",
+
     "currentlocation": "Current Location",
-    "onboarding2_text": "You can share your links and location with others on BzHub.",
-    "onboarding3_title": "Share Your Business",
-    "onboarding3_text": "You can share your business on the BzHub map to help attract more customers.",
+
+    "onboarding3_title": "Control Your Smart World",
+    "onboarding3_text": "Manage your IoT devices and access real-time information with IZIOT.",
+
     "onboarding4_title": "Are you ready?",
-    "onboarding4_text": "Let's go and start BzHub to see what it's like.",
+    "onboarding4_text": "Let's start IZIOT and experience a smarter connected world.",
+
     "alreadyhaveaccount": "Already have an account? ",
     "donthaveaccount": "Don't have an account? ",
     "ok": "OK",

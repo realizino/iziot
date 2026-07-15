@@ -15,7 +15,7 @@ import '../../l10n/app_localizations.dart';
 
 // ─── Brand colors ────────────────────────────────────────────────────────────
 const _primary      = Color(0xFF61a896);
-const _primaryMuted = Color(0xFFEECDBC);
+const _primaryMuted = Color(0xffaeefe0);
 const _textMain     = Color(0xFF1C1C1E);
 const _textSub      = Color(0xFF9A9A9A);
 const _bgCard       = Color(0xFFFFFFFF);

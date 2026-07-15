@@ -239,35 +239,35 @@ class AppLocalizationsRu extends AppLocalizations {
   String get remove => 'Удалить';
 
   @override
-  String get onboarding1_title => 'Электронная визитка';
+  String get onboarding1_title => 'Умные IoT-решения';
 
   @override
   String get onboarding1_text =>
-      'Вы можете бесплатно создать электронную визитку с помощью приложения и сайта BzHub.';
+      'Подключайте свои устройства и легко отслеживайте их с помощью умных IoT-решений IZIOT.';
 
   @override
-  String get onboarding2_title => 'Делитесь ссылками и местоположением';
+  String get onboarding2_title => 'Отслеживание и мониторинг устройств';
+
+  @override
+  String get onboarding2_text =>
+      'Просматривайте состояние, местоположение и данные вашего устройства в любое время и из любого места.';
 
   @override
   String get currentlocation => 'Текущее местоположение';
 
   @override
-  String get onboarding2_text =>
-      'Вы можете делиться своими ссылками и местоположением с другими пользователями BzHub.';
-
-  @override
-  String get onboarding3_title => 'Поделитесь своим бизнесом';
+  String get onboarding3_title => 'Управляйте своим умным миром';
 
   @override
   String get onboarding3_text =>
-      'Вы можете разместить свой бизнес на карте BzHub, чтобы привлечь больше клиентов.';
+      'Управляйте своими IoT-устройствами и получайте доступ к информации в реальном времени с IZIOT.';
 
   @override
   String get onboarding4_title => 'Вы готовы?';
 
   @override
   String get onboarding4_text =>
-      'Давайте начнём с BzHub, чтобы увидеть, как это работает.';
+      'Давайте начнём IZIOT и испытаем более умный и связанный мир.';
 
   @override
   String get alreadyhaveaccount => 'Уже есть аккаунт? ';

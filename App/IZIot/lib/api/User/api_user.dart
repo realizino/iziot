@@ -29,8 +29,6 @@ class api_user
         false
     );
 
-    Strings.UserData.bio=bio;
-
     return true;
   }
   //Add new bio api end
@@ -106,23 +104,6 @@ class api_user
     return true;
   }
   //Upload new avatar image end
-
-
-
-  //Get seen notifications start
-  Future<bool> SeenNotifications(BuildContext context) async
-  {
-    //Get fetech user data from server
-    var result=Server().Fetch_Get(
-        context,
-        "SeenNotifications",
-        true,
-        false
-    );
-
-    return true;
-  }
-  //Get seen notifications end
 
 
 

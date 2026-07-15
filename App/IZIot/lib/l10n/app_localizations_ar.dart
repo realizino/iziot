@@ -232,34 +232,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get remove => 'إزالة';
 
   @override
-  String get onboarding1_title => 'بطاقة عمل رقمية';
+  String get onboarding1_title => 'حلول إنترنت الأشياء الذكية';
 
   @override
   String get onboarding1_text =>
-      'يمكنك الحصول على بطاقة عمل رقمية مجانية باستخدام تطبيق وموقع BzHub.';
+      'قم بتوصيل أجهزتك وراقبها بسهولة من خلال حلول IZIOT الذكية لإنترنت الأشياء.';
 
   @override
-  String get onboarding2_title => 'مشاركة الرابط والموقع';
+  String get onboarding2_title => 'تتبع ومراقبة الأجهزة';
+
+  @override
+  String get onboarding2_text =>
+      'اعرض حالة جهازك وموقعه وبياناته في أي وقت ومن أي مكان.';
 
   @override
   String get currentlocation => 'الموقع الحالي';
 
   @override
-  String get onboarding2_text =>
-      'يمكنك مشاركة روابطك وموقعك مع الآخرين على BzHub.';
-
-  @override
-  String get onboarding3_title => 'شارك عملك التجاري';
+  String get onboarding3_title => 'تحكم في عالمك الذكي';
 
   @override
   String get onboarding3_text =>
-      'يمكنك مشاركة عملك على خريطة BzHub لجذب المزيد من العملاء.';
+      'أدر أجهزة إنترنت الأشياء الخاصة بك واطلع على المعلومات في الوقت الفعلي من خلال IZIOT.';
 
   @override
   String get onboarding4_title => 'هل أنت مستعد؟';
 
   @override
-  String get onboarding4_text => 'هيا بنا نبدأ في BzHub لرؤية ما هو عليه.';
+  String get onboarding4_text =>
+      'دعنا نبدأ IZIOT ونختبر عالماً متصلاً أكثر ذكاءً.';
 
   @override
   String get alreadyhaveaccount => 'هل لديك حساب بالفعل؟ ';

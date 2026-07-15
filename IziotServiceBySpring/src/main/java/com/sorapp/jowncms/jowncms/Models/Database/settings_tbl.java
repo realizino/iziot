@@ -10,8 +10,15 @@ public class settings_tbl
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
+
     String Version;
+
+    @Column(columnDefinition = "LONGTEXT")
     String ESP32CAM_Code;
+
+    @Column(columnDefinition = "LONGTEXT")
+    String config;
+
 
     public settings_tbl() {
     }
@@ -39,5 +46,13 @@ public class settings_tbl
 
     public void setESP32CAM_Code(String ESP32CAM_Code) {
         this.ESP32CAM_Code = ESP32CAM_Code;
+    }
+
+    public String getConfig() {
+        return config;
+    }
+
+    public void setConfig(String config) {
+        this.config = config;
     }
 }

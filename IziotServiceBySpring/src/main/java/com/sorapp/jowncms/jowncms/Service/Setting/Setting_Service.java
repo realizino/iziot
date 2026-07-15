@@ -19,7 +19,6 @@ public class Setting_Service implements ISetting
     @Override
     public settings_tbl GetSetting()
     {
-
         try(Session session=sessionFactory.openSession())
         {
             return (settings_tbl) session.createQuery("FROM settings_tbl setting ORDER BY setting.id desc").list().get(0);
@@ -27,12 +26,14 @@ public class Setting_Service implements ISetting
     }
 
     @Override
-    public settings_tbl NewSetting(String Version,String ESP32CAM_Code)
+    public settings_tbl NewSetting(String Version,String ESP32CAM_Code,String Config)
     {
         settings_tbl settings_tbl=new settings_tbl();
 
         settings_tbl.setVersion(Version);
         settings_tbl.setESP32CAM_Code(ESP32CAM_Code);
+        //Config holds the JSON-encoded extra parameters, same idea as PHP's "parametrs" column
+        settings_tbl.setConfig(Config);
 
         try(Session session=sessionFactory.openSession())
         {
