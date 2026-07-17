@@ -19,7 +19,6 @@ import java.util.Locale;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    // تزریق دو اینترسپتور مجزا
     @Autowired
     private AdminAuthCheckMiddleware adminAuthCheck;
 
@@ -28,31 +27,32 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // اینترسپتور ادمین فقط برای /Admin/Panel/**
         registry.addInterceptor(adminAuthCheck)
                 .addPathPatterns("/Admin/Panel/**");
 
-        // اینترسپتور API فقط برای /api/**
         registry.addInterceptor(apiAuthCheck)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/V1/Config", "/api/V1/Login"); // استثناها
+                .excludePathPatterns(
+                        "/api/V1/Config",
+                        "/api/V1/Login",
+                        "/api/V1/Signup",
+                        "/api/V1/SignupVerify",
+                        "/api/V1/SignupSubmit"
+                );
 
-        // اینترسپتور زبان
         registry.addInterceptor(localeChangeInterceptor());
     }
 
-    // ========== تنظیمات CORS ==========
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**") // فقط برای API
-                .allowedOrigins("http://localhost:59869") // یا "*" برای توسعه
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:15525")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false)
                 .maxAge(3600);
     }
 
-    // ========== بقیه Beanهای زبان ==========
     @Bean
     public LocaleResolver localeResolver() {
         SessionLocaleResolver slr = new SessionLocaleResolver();

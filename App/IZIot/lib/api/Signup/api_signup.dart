@@ -52,8 +52,6 @@ class api_signup
       "device_type":deviceData['device_type'],
       "os_version":deviceData['os_version'],
       "app_version":deviceData['app_version'],
-      "username":username,
-      "password":password,
       "email":email,
       "languagee":AppLocalizations.of(context)!.language
     };

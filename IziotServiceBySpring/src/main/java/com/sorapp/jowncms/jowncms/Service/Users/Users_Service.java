@@ -57,6 +57,16 @@ public class Users_Service implements IUser
 
 
     @Override
+    public users_tbl GetUserByToken(String token)
+    {
+        try(Session session=sessionFactory.openSession())
+        {
+            return (users_tbl) session.createQuery("FROM users_tbl user WHERE user.login_token='"+token+"'").list().get(0);
+        }
+    }
+
+
+    @Override
     public users_tbl Login(String username, String password)
     {
         try
@@ -94,7 +104,7 @@ public class Users_Service implements IUser
     public users_tbl NewUser(String name, String family, String username, String password, String LoginToken, String phone, String email, String bio, String date_time, String user_type, String status, String website, String address, String google_auth, file_tbl profile_image_file_id, city_tbl city_id)
     {
         password= Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
-        LoginToken = HashService.HashText(name+date_time+family+username+password);
+        LoginToken = com.sorapp.jowncms.jowncms.Service.Hash.HashService.HashText(name+date_time+family+username+password);
 
         users_tbl NUser=new users_tbl(
             username,
@@ -148,6 +158,43 @@ public class Users_Service implements IUser
         NUser.setAddress(address);
         NUser.setProfile_image_id(profile_image_file_id);
         NUser.setCity_id(city_id);
+
+        try(Session session=sessionFactory.openSession())
+        {
+            session.beginTransaction();
+            session.update(NUser);
+            session.getTransaction().commit();
+        }
+
+        return NUser;
+    }
+
+    @Override
+    public users_tbl UpdateUserStatus(int id, String status)
+    {
+        users_tbl NUser=GetUser(id);
+
+        NUser.setStatus(status);
+
+        try(Session session=sessionFactory.openSession())
+        {
+            session.beginTransaction();
+            session.update(NUser);
+            session.getTransaction().commit();
+        }
+
+        return NUser;
+    }
+
+    @Override
+    public users_tbl UpdateUserForm(int id, String name, String family, String phone, String bio)
+    {
+        users_tbl NUser=GetUser(id);
+
+        NUser.setName(name);
+        NUser.setFamily(family);
+        NUser.setBio(bio);
+        NUser.setPhone(phone);
 
         try(Session session=sessionFactory.openSession())
         {

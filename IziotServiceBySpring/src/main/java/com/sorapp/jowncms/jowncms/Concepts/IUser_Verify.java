@@ -6,10 +6,10 @@ public interface IUser_Verify
 {
 
     //Get Check Verify Code
-    public boolean CheckVerifyCode(String hash,int user_id);
+    public boolean CheckVerifyCode(String code,int user_id);
 
     //New user verify code
-    public void NewUserVerifyCode(String hash_code, users_tbl user_id);
+    public void NewUserVerifyCode(users_tbl user_id);
 
     //Remove user verify code
     public void RemoveUserVerifyCode(users_tbl user_id);

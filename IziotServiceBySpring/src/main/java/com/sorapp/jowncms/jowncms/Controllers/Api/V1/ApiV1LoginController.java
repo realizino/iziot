@@ -1,13 +1,11 @@
 package com.sorapp.jowncms.jowncms.Controllers.Api.V1;
 
-import com.beust.jcommander.Parameter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.hash.Hashing;
 import com.sorapp.jowncms.jowncms.Function.Encript.EncriptService;
 import com.sorapp.jowncms.jowncms.Service.Users.Users_Service;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/V1")
-public class ApiLoginController
+public class ApiV1LoginController
 {
 
     @Autowired
