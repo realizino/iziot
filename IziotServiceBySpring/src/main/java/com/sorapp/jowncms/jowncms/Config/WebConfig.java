@@ -37,7 +37,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/V1/Login",
                         "/api/V1/Signup",
                         "/api/V1/SignupVerify",
-                        "/api/V1/SignupSubmit"
+                        "/api/V1/SignupSubmit",
+                        "/api/V1/FrogetPassword",
+                        "/api/V1/ResetPassword"
                 );
 
         registry.addInterceptor(localeChangeInterceptor());
@@ -46,7 +48,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:15525")
+                .allowedOrigins("http://localhost:41313")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false)

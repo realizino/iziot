@@ -1,9 +1,9 @@
 package com.sorapp.jowncms.jowncms.Service.Users;
 
 import com.google.common.hash.Hashing;
-import com.sorapp.jowncms.jowncms.Function.Hash.HashService;
 import com.sorapp.jowncms.jowncms.Models.Database.*;
 import com.sorapp.jowncms.jowncms.Concepts.IUser;
+import com.sorapp.jowncms.jowncms.Service.Hash.HashService;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
@@ -63,6 +63,23 @@ public class Users_Service implements IUser
         {
             return (users_tbl) session.createQuery("FROM users_tbl user WHERE user.login_token='"+token+"'").list().get(0);
         }
+    }
+
+    @Override
+    public users_tbl GetUserByEmail(String email)
+    {
+        try
+        {
+            try (Session session = sessionFactory.openSession())
+            {
+                return (users_tbl) session.createQuery("FROM users_tbl user WHERE user.email='" + email + "'").list().get(0);
+            }
+        }
+        catch (Exception e)
+        {
+
+        }
+        return null;
     }
 
 
@@ -175,6 +192,25 @@ public class Users_Service implements IUser
         users_tbl NUser=GetUser(id);
 
         NUser.setStatus(status);
+
+        try(Session session=sessionFactory.openSession())
+        {
+            session.beginTransaction();
+            session.update(NUser);
+            session.getTransaction().commit();
+        }
+
+        return NUser;
+    }
+
+    @Override
+    public users_tbl UpdateUserPassword(int id, String password) {
+        users_tbl NUser=GetUser(id);
+
+        if(!password.equals("")) {
+            password= HashService.HashText(password);
+            NUser.setPassword(password);
+        }
 
         try(Session session=sessionFactory.openSession())
         {

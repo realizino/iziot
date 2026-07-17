@@ -18,6 +18,7 @@ public interface IUser
     //Get User
     public users_tbl GetUser(int id);
     public users_tbl GetUserByToken(String token);
+    public users_tbl GetUserByEmail(String email);
 
     //Login User
     public users_tbl Login(String username,String password);
@@ -31,6 +32,7 @@ public interface IUser
     //Update
     public users_tbl UpdateUser(int id,String name, String family, String username, String password, String phone, String email, String bio, String date_time, String user_type, String status, String website, String address, file_tbl profile_image_file_id, city_tbl city_id);
     public users_tbl UpdateUserStatus(int id,String status);
+    public users_tbl UpdateUserPassword(int id,String password);
     public users_tbl UpdateUserForm(int id,String name,String family,String phone,String bio);
 
     //Update User BY Admin
