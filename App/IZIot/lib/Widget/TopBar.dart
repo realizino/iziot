@@ -33,7 +33,7 @@ Widget TopBar(BuildContext context,bool BackAble)
             child: Image.asset(
               "assets/icons/r_logo.png",
               key: ValueKey('r_logo'),
-              height: 50,
+              height: 45,
             ),
           )
           ,
@@ -66,10 +66,11 @@ Widget TopBar(BuildContext context,bool BackAble)
           //   child: Image.network(Strings.Config["logo"].toString(),height: 50,),
           // )
           Center(
-            child: CachedNetworkImage(
-              imageUrl: Strings.Config["logo"].toString(),
-              height: 50,
-            ),
+            // child: CachedNetworkImage(
+            //   imageUrl: Strings.Config["logo"].toString(),
+            //   height: 50,
+            // ),
+            child: Image.asset("assets/icons/r_logo.png",height: 45,),
           )
           ,
           (BackAble)?

@@ -6,6 +6,7 @@ import com.sorapp.jowncms.jowncms.Middleware.AdminAuthCheckMiddleware;
 import com.sorapp.jowncms.jowncms.Models.Database.city_tbl;
 import com.sorapp.jowncms.jowncms.Models.Database.hub_tbl;
 import com.sorapp.jowncms.jowncms.Concepts.IFileUpload;
+import com.sorapp.jowncms.jowncms.Models.Database.users_tbl;
 import com.sorapp.jowncms.jowncms.Service.City.City_Service;
 import com.sorapp.jowncms.jowncms.Service.File.IOTFile_Service;
 import com.sorapp.jowncms.jowncms.Service.IOTToken.IOTToken;
@@ -95,7 +96,10 @@ public class AdminHubController
 
 
     @RequestMapping(value = "/Panel/AddHubDone", method = RequestMethod.POST)
-    public ModelAndView AddHubDone(HttpServletRequest request, String serial_number, String title, String iot_type, String iot_model, String status, String resolution, String admin_number, String ip_address, String username, String password, String lat, String lng, String timezone, String attribute_inpt) {
+    public ModelAndView AddHubDone(HttpServletRequest request, String serial_number, String title, String iot_type, String iot_model, String status, String resolution, String admin_number, String ip_address, String username, String password, String lat, String lng, String timezone, String attribute_inpt)
+    {
+        users_tbl USER = AdminAuthCheckMiddleware.user_data;
+
         ModelAndView response = new ModelAndView();
         response.setViewName("Admin/addhub");
         response.addObject("user_data", AdminAuthCheckMiddleware.user_data);
@@ -123,13 +127,16 @@ public class AdminHubController
         n_hun.setUsername(username);
         n_hun.setPassword(password);
         n_hun.setPermission("");
-        n_hun.setDate_time(LocalDate.now().getYear() + "-" + LocalDate.now().getMonth() + "-" + LocalDate.now().getDayOfMonth() + " " + LocalTime.now().getHour() + ":" + LocalTime.now().getMinute());
+        n_hun.setCreated_at(LocalDate.now().getYear() + "-" + LocalDate.now().getMonth() + "-" + LocalDate.now().getDayOfMonth() + " " + LocalTime.now().getHour() + ":" + LocalTime.now().getMinute());
+        n_hun.setUpdated_at(LocalDate.now().getYear() + "-" + LocalDate.now().getMonth() + "-" + LocalDate.now().getDayOfMonth() + " " + LocalTime.now().getHour() + ":" + LocalTime.now().getMinute());
 
         if (iot_model.contains("NEWPROTOCOL"))
             n_hun.setUrl("");
         else
             n_hun.setUrl(ip_address + "/snapshop.jpg");
         //new hub model end
+
+        n_hun.setUser_id(USER);
 
         Hub_Service.AddNewHub(n_hun);
         IotFileService.CreateHubDirectory(Repository, n_hun.getId() + "");
@@ -399,7 +406,7 @@ public class AdminHubController
         n_hun.setPassword(password);
         n_hun.setAttribute(attribute_inpt);
         n_hun.setPermission("");
-        n_hun.setDate_time(LocalDate.now().getYear() + "-" + LocalDate.now().getMonth() + "-" + LocalDate.now().getDayOfMonth() + " " + LocalTime.now().getHour() + ":" + LocalTime.now().getMinute());
+        n_hun.setUpdated_at(LocalDate.now().getYear() + "-" + LocalDate.now().getMonth() + "-" + LocalDate.now().getDayOfMonth() + " " + LocalTime.now().getHour() + ":" + LocalTime.now().getMinute());
         n_hun.setUrl(ip_address + "/snapshop.jpg");
 
         Hub_Service.UpdateHub(n_hun);

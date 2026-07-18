@@ -8,7 +8,7 @@ class App_Colors
   static String Green_String_Color="#64dd17";
   static String Red_String_Color="#FF0000";
 
-  static Color Theme_Color=Color(0XFF61a896);
+  static Color Theme_Color=Color(0XFF1ABC9C);
 
   static Color White_Color=Colors.white;
   static Color Blue_Color=Colors.blue;
@@ -33,80 +33,80 @@ class App_Colors
 
   static ThemeData get light => ThemeData(
 
-    useMaterial3: true,
-    datePickerTheme: DatePickerThemeData(
-      backgroundColor: Colors.white
-    ),
-    popupMenuTheme: PopupMenuThemeData(
-      color: Colors.white
-    ),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Theme_Color,
-      primary: Theme_Color,
-      secondary: Theme_Color,
-      brightness: Brightness.light,
-    ),
+      useMaterial3: true,
+      datePickerTheme: DatePickerThemeData(
+          backgroundColor: Colors.white
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+          color: Colors.white
+      ),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Theme_Color,
+        primary: Theme_Color,
+        secondary: Theme_Color,
+        brightness: Brightness.light,
+      ),
       dialogTheme: DialogThemeData(
           backgroundColor: Colors.white
       ),
-    textSelectionTheme: TextSelectionThemeData(
-      cursorColor: Theme_Color,
-      selectionColor: Theme_Color.withOpacity(0.25),
-      selectionHandleColor: Theme_Color,
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: Theme_Color,
-          width: 1.4,
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: Theme_Color,
+        selectionColor: Theme_Color.withOpacity(0.25),
+        selectionHandleColor: Theme_Color,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme_Color,
+            width: 1.4,
+          ),
         ),
       ),
-    ),
-    // splashColor: Theme_Color.withOpacity(0.12),
-    highlightColor: Theme_Color.withOpacity(0.08),
-    scaffoldBackgroundColor: Color(0XFFEEEEEE),
-    primaryColor: Color(0XFFd7561c),
+      // splashColor: Theme_Color.withOpacity(0.12),
+      highlightColor: Theme_Color.withOpacity(0.08),
+      scaffoldBackgroundColor: Color(0XFFEEEEEE),
+      primaryColor: Color(0XFF1ABC9C),
 
 
-    progressIndicatorTheme: ProgressIndicatorThemeData(
-      color: Theme_Color,
-    ),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: Theme_Color,
-      foregroundColor: Colors.white,
-    ),
-    checkboxTheme: CheckboxThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
-          return Color(0XFFd7561c);
-        }
-        return Colors.white;
-      }),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: Theme_Color,
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: Theme_Color,
         foregroundColor: Colors.white,
       ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Theme_Color,
-        side: BorderSide(color: Theme_Color),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+          if (states.contains(MaterialState.selected)) {
+            return Theme_Color;
+          }
+          return Colors.white;
+        }),
       ),
-    ),
-    primarySwatch: Colors.orange,
-    splashColor: Colors.white,
-    cardColor: Colors.white,
-    canvasColor: Color(0XFF999999),
-    dividerColor: Color(0XFFCCCCCC),
-    unselectedWidgetColor: Color(0XFF666666),
-    disabledColor: Color(0XFF707070),
-    secondaryHeaderColor: Colors.black45,
-    fontFamily: appFontFamily,
-    cardTheme: CardThemeData(
-      color: Colors.white
-    )
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme_Color,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Theme_Color,
+          side: BorderSide(color: Theme_Color),
+        ),
+      ),
+      primarySwatch: Colors.teal,
+      splashColor: Colors.white,
+      cardColor: Colors.white,
+      canvasColor: Color(0XFF999999),
+      dividerColor: Color(0XFFCCCCCC),
+      unselectedWidgetColor: Color(0XFF666666),
+      disabledColor: Color(0XFF707070),
+      secondaryHeaderColor: Colors.black45,
+      fontFamily: appFontFamily,
+      cardTheme: CardThemeData(
+          color: Colors.white
+      )
   );
 
   static ThemeData dark=ThemeData(
@@ -114,7 +114,7 @@ class App_Colors
         backgroundColor: Color(0XFF333333)
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: Color(0XFF333333)
+        color: Color(0XFF333333)
     ),
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
@@ -124,7 +124,7 @@ class App_Colors
       brightness: Brightness.dark,
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: Color(0XFF333333)
+        backgroundColor: Color(0XFF333333)
     ),
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: Theme_Color,
@@ -142,26 +142,11 @@ class App_Colors
     // splashColor: Theme_Color.withOpacity(0.14),
     highlightColor: Theme_Color.withOpacity(0.10),
     scaffoldBackgroundColor: Color(0XFF555555),
-    primaryColor: Color(0XFFd7561c),
+    primaryColor: Color(0XFF1ABC9C),
     cardTheme: CardThemeData(
         color: Color(0XFF333333)
     ),
 
-
-    // useMaterial3: true,
-    // scaffoldBackgroundColor: Color(0XFF555555),
-    // primaryColor: Color(0XFFd7561c),
-    // colorScheme: ColorScheme(
-    //     brightness: Brightness.dark,
-    //     primary: Theme_Color,
-    //     onPrimary: Theme_Color,
-    //     secondary: Theme_Color,
-    //     onSecondary: Theme_Color,
-    //     error: Red_Color,
-    //     onError: Red_Color,
-    //     surface: Colors.transparent,
-    //     onSurface: Colors.transparent
-    // ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: Theme_Color,
     ),
@@ -172,7 +157,7 @@ class App_Colors
     checkboxTheme: CheckboxThemeData(
       fillColor: MaterialStateProperty.resolveWith<Color>((states) {
         if (states.contains(MaterialState.selected)) {
-          return Color(0XFFd7561c);
+          return Theme_Color;
         }
         return Colors.white;
       }),
@@ -189,7 +174,7 @@ class App_Colors
         side: BorderSide(color: Theme_Color),
       ),
     ),
-    primarySwatch: Colors.orange,
+    primarySwatch: Colors.teal,
     splashColor: Color(0XFF333333),
     cardColor: Color(0XFF333333),
     canvasColor: Color(0XFF999999),

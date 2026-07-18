@@ -41,10 +41,6 @@ class activity_profile_state extends State<activity_profile> {
   bool _isSubmitting  = false;
   bool _isUploading   = false;
 
-  // ─── Categories ──────────────────────────────────────────────────────────────
-  bool _loadingCats        = true;
-  List<Categories_Model> _categories  = [];
-  List<String> _selectedKeywords      = [];
 
   // ─── Lifecycle ───────────────────────────────────────────────────────────────
   @override
@@ -81,8 +77,6 @@ class activity_profile_state extends State<activity_profile> {
                   _InfoCard(),
                   const SizedBox(height: 12),
                   _PasswordCard(),
-                  const SizedBox(height: 12),
-                  _CategoriesCard(),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -96,7 +90,7 @@ class activity_profile_state extends State<activity_profile> {
   // ─── Avatar card ─────────────────────────────────────────────────────────────
   Widget _AvatarCard() {
     final imageUrl = (Strings.ProfileImage.isEmpty)
-        ? Server.Root_Address+"/User/images/user.png"
+        ? Server.Root_Address+"/Assets/Admin/images/faces/face.png"
         : Server.Root_Address+"/File/${Strings.ProfileImage}";
 
     return Container(
@@ -224,118 +218,6 @@ class activity_profile_state extends State<activity_profile> {
     );
   }
 
-  // ─── Categories card ─────────────────────────────────────────────────────────
-  Widget _CategoriesCard() {
-    return Container(
-      margin: EdgeInsets.only(top: 16,right: 16,left: 16,bottom: 10),
-      child: _Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionTitle(AppLocalizations.of(context)!.categories),
-            const SizedBox(height: 10),
-
-            if (_loadingCats)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: CircularProgressIndicator(color: _primary, strokeWidth: 2),
-                ),
-              )
-            else if (_categories.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  AppLocalizations.of(context)!.noCategoriesAvailable,
-                  style: TextStyle( fontSize: 13, color: _textSub),
-                ),
-              )
-            else
-              ..._categories.map((root) => _buildRootCategory(root)),
-
-            if (_selectedKeywords.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Divider(color: _bgPage, height: 1),
-              const SizedBox(height: 10),
-              Text(
-                AppLocalizations.of(context)!.yourSelectedKeywords,
-                style: TextStyle(
-                   fontSize: 12,
-                  fontWeight: FontWeight.w600, color: _textSub,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6, runSpacing: 6,
-                children: _selectedKeywords.map((kw) => Chip(
-                  label: Text(kw,
-                      style: TextStyle( fontSize: 12, color: Colors.white)),
-                  deleteIcon: const Icon(Icons.close, size: 14, color: Colors.white),
-                  onDeleted: () => _toggleKeyword(kw),
-                  backgroundColor: _primary,   // ← نارنجی پررنگ
-                  deleteIconColor: Colors.white,
-                  side: BorderSide.none,
-                )).toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRootCategory(Categories_Model root) {
-    return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        key: PageStorageKey('cat_${root.id}'),
-        tilePadding: EdgeInsets.zero,
-        title: Text(
-          root.title,
-          style: TextStyle(
-             fontSize: 14,
-            fontWeight: FontWeight.w600, color: _textMain,
-          ),
-        ),
-        children: [
-          Wrap(
-            spacing: 6, runSpacing: 6,
-            children: root.children.map((child) {
-              final selected = _selectedKeywords.contains(child.title);
-              return FilterChip(
-                label: Text(child.title,
-                    style: TextStyle( fontSize: 12)),
-                selected: selected,
-                onSelected: (_) => _toggleKeyword(child.title),
-                selectedColor: _primary,   // ← نارنجی پررنگ برای حالت انتخاب
-                checkmarkColor: Colors.white,
-                side: BorderSide(
-                  color: selected ? _primary : _textSub,   // ← حاشیه به جای طوسی، رنگ متن
-                  width: 1,
-                ),
-                backgroundColor: _bgCard,
-                labelStyle: TextStyle(
-                  color: selected ? Colors.white : _textSub,   // ← متن سفید در حالت انتخاب
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  void _toggleKeyword(String title) {
-    if (!mounted) return;
-    setState(() {
-      _selectedKeywords.contains(title)
-          ? _selectedKeywords.remove(title)
-          : _selectedKeywords.add(title);
-    });
-  }
-
   // ─── Bottom bar ───────────────────────────────────────────────────────────────
   Widget _BottomBar() {
     return SafeArea(
@@ -346,7 +228,7 @@ class activity_profile_state extends State<activity_profile> {
           child: ElevatedButton(
             onPressed: _isSubmitting ? null : _submit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0XFFd7561c),
+              backgroundColor: App_Colors.Theme_Color,
               disabledBackgroundColor: _primary.withOpacity(0.4),
               elevation: 0,
               shape: RoundedRectangleBorder(
