@@ -1,0 +1,127 @@
+"""
+ESP32-CAM + NEO-6M GPS health check.
+
+Behavior:
+- Keeps listening to the GPS UART with NO time limit.
+- LED stays solidly ON the entire time no valid NMEA sentence has ever
+  been received (this covers slow cold starts, even if it takes 2+
+  minutes - the LED just stays on until something arrives).
+- The moment the FIRST valid NMEA sentence (correct checksum) is received,
+  the module is considered healthy/alive, and the code switches
+  permanently to blinking the LED once every 5 seconds.
+- If the module is genuinely dead / not wired correctly, nothing ever
+  arrives, so the LED simply stays on forever - which is itself the
+  "not working" signal, no separate timeout/decision needed.
+
+  (Note: this only confirms the GPS module itself is alive and talking
+  over UART. Getting an actual position fix is a separate thing and can
+  take 1-2+ minutes outdoors on cold start - that's normal and does not
+  affect this test, since a GPS module emits NMEA sentences even before
+  it has a fix.)
+
+Wiring (adjust pins if yours differ):
+  NEO-6M TX  -> ESP32-CAM GPIO14 (UART2 RX)
+  NEO-6M RX  -> ESP32-CAM GPIO15 (UART2 TX)   (optional, GPS works without it)
+  NEO-6M VCC -> 3.3V (or 5V depending on your module, check silkscreen!)
+  NEO-6M GND -> GND
+
+  LED        -> the small onboard red LED on the back of the AI-Thinker
+                ESP32-CAM board, which is wired to GPIO33 and is
+                active-LOW (writing 0 turns it on, 1 turns it off).
+                (This is different from the bright white flash LED on
+                GPIO4 on the front, which is not used here.)
+
+NOTE: GPIO14/15 are free-ish on ESP32-CAM (not used by the camera in most
+modules), but double check against your specific board variant.
+"""
+
+from machine import UART, Pin
+import time
+
+# ---------- Configuration ----------
+GPS_UART_ID = 2
+GPS_TX_PIN  = 15   # ESP32 -> GPS RX (optional)
+GPS_RX_PIN  = 14   # GPS TX -> ESP32 RX
+GPS_BAUD    = 9600
+
+LED_PIN     = 33   # onboard red LED on the back of AI-Thinker ESP32-CAM
+LED_ACTIVE_HIGH = False  # this onboard LED is active-LOW
+
+BLINK_INTERVAL_MS = 5000
+BLINK_ON_MS = 150          # how long the LED stays on during a blink
+
+# ---------- Setup ----------
+led = Pin(LED_PIN, Pin.OUT)
+
+
+def led_on():
+    led.value(1 if LED_ACTIVE_HIGH else 0)
+
+
+def led_off():
+    led.value(0 if LED_ACTIVE_HIGH else 1)
+
+
+led_on()  # LED starts ON: "not confirmed healthy yet"
+
+uart = UART(GPS_UART_ID, baudrate=GPS_BAUD, tx=GPS_TX_PIN, rx=GPS_RX_PIN)
+
+
+def nmea_checksum_ok(line):
+    """Validate an NMEA sentence's checksum.
+    Format: $GPGGA,...*XX
+    """
+    try:
+        if not line.startswith("$") or "*" not in line:
+            return False
+        body, chk = line[1:].split("*", 1)
+        chk = chk.strip()
+        if len(chk) < 2:
+            return False
+        calc = 0
+        for ch in body:
+            calc ^= ord(ch)
+        return "%02X" % calc == chk[:2].upper()
+    except Exception:
+        return False
+
+
+def wait_for_first_valid_sentence():
+    """Block here with the LED solidly ON until at least one valid NMEA
+    sentence is received. No timeout - this can take a few seconds or a
+    few minutes, it doesn't matter, it will just keep waiting.
+    """
+    print("Waiting for GPS module to respond (LED solid ON until then)...")
+    buf = b""
+
+    while True:
+        if uart.any():
+            chunk = uart.read()
+            if chunk:
+                buf += chunk
+                if len(buf) > 1024:      # safety: drop garbage if no
+                    buf = buf[-256:]     # newline ever shows up
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    try:
+                        text = line.decode("ascii").strip()
+                    except UnicodeError:
+                        continue
+                    if nmea_checksum_ok(text):
+                        print("Valid NMEA sentence received:", text)
+                        return
+        time.sleep_ms(20)
+
+
+def blink_forever():
+    print("GPS OK -> blinking every 5s")
+    while True:
+        led_on()
+        time.sleep_ms(BLINK_ON_MS)
+        led_off()
+        time.sleep_ms(BLINK_INTERVAL_MS - BLINK_ON_MS)
+
+
+# ---------- Main ----------
+wait_for_first_valid_sentence()
+blink_forever()

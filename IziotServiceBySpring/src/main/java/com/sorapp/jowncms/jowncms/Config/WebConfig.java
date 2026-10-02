@@ -39,7 +39,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/V1/SignupVerify",
                         "/api/V1/SignupSubmit",
                         "/api/V1/FrogetPassword",
-                        "/api/V1/ResetPassword"
+                        "/api/V1/ResetPassword",
+                        "/api/hub-location/**",
+                        "/api/hub-snapshot/**"
                 );
 
         registry.addInterceptor(localeChangeInterceptor());

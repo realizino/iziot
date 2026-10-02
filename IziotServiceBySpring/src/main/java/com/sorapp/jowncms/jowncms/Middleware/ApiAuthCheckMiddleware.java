@@ -22,17 +22,14 @@ public class ApiAuthCheckMiddleware implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
-        // 1. اجازه عبور درخواست‌های OPTIONS (برای CORS)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
 
-        // 2. گرفتن هدر Authorization
         String authHeader = request.getHeader("Authorization");
         LOGGER.info("API Interceptor - URI: {}, Auth: {}", request.getRequestURI(), authHeader);
 
-        // 3. اگر هدر وجود نداشت، خطای ۴۰۱ برگردان
         if (authHeader == null || authHeader.trim().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
@@ -40,11 +37,9 @@ public class ApiAuthCheckMiddleware implements HandlerInterceptor {
             return false;
         }
 
-        // 4. دیکریپت و احراز هویت
         try {
             String json = encription.DEC(authHeader);
             users_tbl user = new users_tbl().FromJson(json);
-            // (اختیاری) بررسی وجود کاربر در دیتابیس
             request.setAttribute("authenticatedUser", user);
             return true;
         } catch (Exception e) {
