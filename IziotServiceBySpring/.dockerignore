@@ -1,0 +1,22 @@
+target/
+.idea/
+.vscode/
+.git/
+.mvn/
+mvnw
+mvnw.cmd
+HELP.md
+README.md
+effective-pom.xml
+
+# runtime data dirs are bind-mounted, not baked into the image
+DB/
+Files/
+FilesPresent/
+Uploads/
+libs/
+Conf/
+
+# fonts/watermark are copied selectively in the Dockerfile
+CenturyGothic1.ttf
+CenturyGothic2.TTF
