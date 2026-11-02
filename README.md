@@ -78,7 +78,3 @@ flowchart LR
 - According to the developer, RTP communication uses a proprietary encryption mechanism. Its implementation details are not included in this README.
 - **Base64 is not encryption.** In the second architecture, Base64 is used to represent or transfer configuration data and should not be considered a confidentiality mechanism on its own.
 - The diagrams are conceptual representations of data flow; they do not show implementation details, network settings, or encryption internals.
-
-## Ownership and Development History
-
-According to the developer, the project's implementations and changes were maintained in personal GitHub repositories under the username [`rezafarazi`](https://github.com/rezafarazi) and a personal email address. The developer also states that Vaya Media did not provide a repository or version-control system as a record of the project's development.
